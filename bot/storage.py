@@ -1,0 +1,115 @@
+"""Redis-backed persistence.
+
+On Vercel every webhook is a fresh, short-lived function invocation, so we
+cannot keep state in module-level dicts/sets like the polling version did —
+they would reset on every cold start and the multi-step flows (ritual, letter,
+countdown) would lose their place between steps.
+
+Everything that used to live in memory now lives in Redis:
+
+    blocked_users      -> SET  "corridor:blocked"
+    unique_senders     -> SET  "corridor:senders"
+    returning_users    -> SET  "corridor:returning"
+    user_aliases       -> HASH "corridor:aliases"      (uid -> alias)
+    message_counter    -> INT  "corridor:counter"
+    messages_per_day   -> HASH "corridor:per_day"      (YYYY-MM-DD -> count)
+    pending_messages   -> HASH "corridor:pending:<uid>" (the message awaiting a type)
+
+The FSM (aiogram states) is handled separately by RedisStorage.
+"""
+
+import redis.asyncio as aioredis
+from aiogram.fsm.storage.redis import RedisStorage
+
+from bot.config import REDIS_URL
+
+PREFIX = "corridor"
+
+
+def make_redis() -> "aioredis.Redis":
+    """A plain async Redis client for our own app state."""
+    return aioredis.from_url(REDIS_URL, decode_responses=True)
+
+
+def make_fsm_storage() -> RedisStorage:
+    """The storage aiogram uses to remember which step of a flow a user is on."""
+    return RedisStorage.from_url(REDIS_URL)
+
+
+class Store:
+    """Thin async wrapper over Redis for all the corridor's bookkeeping."""
+
+    def __init__(self, redis: "aioredis.Redis"):
+        self.r = redis
+
+    # ----- blocked users -----
+    async def is_blocked(self, uid: int) -> bool:
+        return await self.r.sismember(f"{PREFIX}:blocked", uid)
+
+    async def block(self, uid: int) -> None:
+        await self.r.sadd(f"{PREFIX}:blocked", uid)
+
+    async def unblock(self, uid: int) -> None:
+        await self.r.srem(f"{PREFIX}:blocked", uid)
+
+    async def blocked_count(self) -> int:
+        return await self.r.scard(f"{PREFIX}:blocked")
+
+    async def blocked_list(self) -> list[int]:
+        return sorted(int(x) for x in await self.r.smembers(f"{PREFIX}:blocked"))
+
+    # ----- returning users -----
+    async def is_returning(self, uid: int) -> bool:
+        return await self.r.sismember(f"{PREFIX}:returning", uid)
+
+    async def add_returning(self, uid: int) -> None:
+        await self.r.sadd(f"{PREFIX}:returning", uid)
+
+    # ----- aliases -----
+    async def set_alias(self, uid: int, alias: str) -> None:
+        await self.r.hset(f"{PREFIX}:aliases", str(uid), alias)
+
+    async def get_alias(self, uid: int) -> str | None:
+        return await self.r.hget(f"{PREFIX}:aliases", str(uid))
+
+    async def all_aliases(self) -> dict[str, str]:
+        return await self.r.hgetall(f"{PREFIX}:aliases")
+
+    # ----- counters / senders -----
+    async def incr_counter(self) -> int:
+        return await self.r.incr(f"{PREFIX}:counter")
+
+    async def get_counter(self) -> int:
+        return int(await self.r.get(f"{PREFIX}:counter") or 0)
+
+    async def add_sender(self, uid: int) -> None:
+        await self.r.sadd(f"{PREFIX}:senders", uid)
+
+    async def senders_count(self) -> int:
+        return await self.r.scard(f"{PREFIX}:senders")
+
+    async def senders_list(self) -> list[int]:
+        return sorted(int(x) for x in await self.r.smembers(f"{PREFIX}:senders"))
+
+    # ----- per-day message counts -----
+    async def incr_day(self, date: str) -> None:
+        await self.r.hincrby(f"{PREFIX}:per_day", date, 1)
+
+    async def get_day(self, date: str) -> int:
+        return int(await self.r.hget(f"{PREFIX}:per_day", date) or 0)
+
+    async def all_days(self) -> dict[str, int]:
+        raw = await self.r.hgetall(f"{PREFIX}:per_day")
+        return {k: int(v) for k, v in raw.items()}
+
+    # ----- pending message (between "send" and "pick a type") -----
+    async def set_pending(self, uid: int, data: dict[str, str]) -> None:
+        key = f"{PREFIX}:pending:{uid}"
+        await self.r.hset(key, mapping=data)
+        await self.r.expire(key, 3600)  # forget unconfirmed messages after an hour
+
+    async def pop_pending(self, uid: int) -> dict[str, str] | None:
+        key = f"{PREFIX}:pending:{uid}"
+        data = await self.r.hgetall(key)
+        await self.r.delete(key)
+        return data or None
