@@ -3,16 +3,29 @@
 Vercel is serverless: there is no long-running process, so the polling model
 (`dp.start_polling`) cannot work. Instead Telegram POSTs each update to this
 function at  https://<your-project>.vercel.app/api/webhook  and we feed that
-single update into aiogram, then tear everything down.
+single update into aiogram.
 
-Vercel's Python runtime looks for a class named ``handler`` that subclasses
-BaseHTTPRequestHandler — that's what this file exports.
+Important serverless detail: Vercel keeps the Python process *warm* and reuses
+it across requests. So we build the Bot, Dispatcher and Redis connections ONCE
+per container (module load) and reuse them. Two reasons:
+
+  * a Router can be attached to only one Dispatcher for its lifetime — building
+    a fresh Dispatcher and re-including the module-level router on every request
+    raises "Router is already attached";
+  * the aiohttp/redis connections bind to an event loop, so we keep a single
+    persistent loop alive and reuse it instead of spinning up a new one per call.
+
+A lock serializes invocations, so the shared loop is never run concurrently.
+
+Vercel's Python runtime uses the ``handler`` class (BaseHTTPRequestHandler)
+declared here, wired up via the ``[tool.vercel] entrypoint`` in pyproject.toml.
 """
 
 import asyncio
 import json
 import os
 import sys
+import threading
 from http.server import BaseHTTPRequestHandler
 
 # Make the top-level `bot` package importable regardless of how Vercel invokes us.
@@ -25,30 +38,24 @@ from bot.config import TOKEN, WEBHOOK_SECRET  # noqa: E402
 from bot.handlers import router  # noqa: E402
 from bot.storage import Store, make_fsm_storage, make_redis  # noqa: E402
 
+# ---- built once per warm container, reused across invocations ----
+_loop = asyncio.new_event_loop()
+asyncio.set_event_loop(_loop)
+_lock = threading.Lock()
 
-async def process_update(update_data: dict) -> None:
-    """Build fresh resources, dispatch one update, then close everything.
+_fsm_storage = make_fsm_storage()
+_redis = make_redis()
+_store = Store(_redis)
 
-    A new Bot/Dispatcher/Redis connection is created per invocation. That is the
-    safe pattern under serverless: each request gets its own event loop, so we
-    never reuse aiohttp/redis connections bound to a loop that has been closed.
-    """
-    fsm_storage = make_fsm_storage()
-    redis = make_redis()
-    store = Store(redis)
+_bot = Bot(token=TOKEN)
+_dp = Dispatcher(storage=_fsm_storage)
+_dp.include_router(router)  # attach the router exactly once for the process lifetime
 
-    bot = Bot(token=TOKEN)
-    dp = Dispatcher(storage=fsm_storage)
-    dp.include_router(router)
 
-    try:
-        update = Update.model_validate(update_data, context={"bot": bot})
-        # `store` is injected into any handler that declares a `store` parameter.
-        await dp.feed_update(bot, update, store=store)
-    finally:
-        await bot.session.close()
-        await fsm_storage.close()
-        await redis.aclose()
+async def _process(update_data: dict) -> None:
+    update = Update.model_validate(update_data, context={"bot": _bot})
+    # `store` is injected into any handler that declares a `store` parameter.
+    await _dp.feed_update(_bot, update, store=_store)
 
 
 class handler(BaseHTTPRequestHandler):
@@ -59,7 +66,7 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        # A friendly response so visiting the URL in a browser confirms it's alive.
+        # Visiting the URL in a browser confirms the function is alive.
         self._send(200, "the corridor is open. 🕯️".encode("utf-8"))
 
     def do_POST(self):
@@ -75,8 +82,10 @@ class handler(BaseHTTPRequestHandler):
 
         try:
             update_data = json.loads(raw)
-            asyncio.run(process_update(update_data))
-        except Exception as exc:  # never 500 back to Telegram or it will retry forever
+            # Serialize so the reused event loop is never run concurrently.
+            with _lock:
+                _loop.run_until_complete(_process(update_data))
+        except Exception as exc:  # never 500 back to Telegram or it retries forever
             print(f"webhook error: {exc}", file=sys.stderr)
 
         # Always 200 so Telegram considers the update delivered.

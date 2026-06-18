@@ -1,0 +1,15 @@
+[project]
+name = "vercel-corridor-bot"
+version = "1.0.0"
+description = "Anonymous-message Telegram bot running on Vercel via webhooks"
+requires-python = ">=3.9"
+dependencies = [
+    "aiogram>=3.7,<4",
+    "redis>=5.0,<6",
+]
+
+# The newer Vercel Python runtime needs the entrypoint declared explicitly
+# instead of auto-detecting api/*.py. `handler` is the BaseHTTPRequestHandler
+# class in api/webhook.py.
+[tool.vercel]
+entrypoint = "api.webhook:handler"
