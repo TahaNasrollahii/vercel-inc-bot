@@ -724,7 +724,8 @@ async def admin_reply(message: Message, bot: Bot):
             f"a voice returns from the other side of darkness:\n\n{reply_text}\n\n"
             f"─────────────────\n"
             f"_the dark spoke. now you may —\n"
-            f"reply, if you have something to say._"
+            f"***reply***, if you have something to say._",
+            parse_mode="Markdown"
         )
         await message.answer("✔ delivered into the dark")
     except Exception as e:
