@@ -31,6 +31,7 @@ from aiogram.types import (
     Message,
     ReactionTypeEmoji,
     ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
     WebAppInfo,
 )
 
@@ -403,7 +404,7 @@ async def deliver_to_keeper(
         pass
 
     confirm = random.choice(NIGHT_CONFIRM_MESSAGES if is_night else CONFIRM_MESSAGES)
-    await bot.send_message(chat_id, confirm, reply_markup=corridor_keyboard())
+    await bot.send_message(chat_id, confirm)
 
 
 async def get_stats_text(store: Store) -> str:
@@ -487,6 +488,10 @@ async def start(message: Message, state: FSMContext, bot: Bot, store: Store):
     else:
         await store.add_returning(user.id)
         await message.answer(START_TEXT, reply_markup=main_keyboard())
+
+    # Force-clear any stale cached reply keyboard (e.g. from an older
+    # is_persistent=True deployment) so Telegram resets its client-side state.
+    await message.answer("·", reply_markup=ReplyKeyboardRemove())
 
     # Install the persistent dark keyboard beneath the message box. A separate
     # message because a single message can carry only one reply_markup.
