@@ -113,6 +113,37 @@ MESSAGE_TYPES = {
     "just_words": "🌑 JUST WORDS",
 }
 
+# Human-readable descriptions for the activity tracker.
+# Each command the keeper should be notified about, and what it means.
+COMMAND_ACTIVITY = {
+    "start": "🚪 entered the dark",
+    "help": "📖 opened the guide",
+    "chat": "✒️ opened the corridor",
+    "confess": "🩸 opened confession",
+    "dark": "🌑 asked for a dark quote",
+    "fortune": "🔮 asked for a fortune",
+    "mood": "🌫️ opened mood",
+    "mirror": "🪞 looked into the mirror",
+    "ritual": "🕯️ began the ritual",
+    "letter": "📜 began a letter",
+    "countdown": "⏳ started a countdown",
+    "alias": "🪦 set an alias",
+}
+
+# Each button (callback_data) and what tapping it means.
+CALLBACK_ACTIVITY = {
+    "cmd_start": "🚪 tapped “enter the dark”",
+    "cmd_chat": "✒️ tapped “speak”",
+    "cmd_help": "📖 tapped “the guide”",
+    "type_confession": "🩸 marked a message as a confession",
+    "type_question": "🕯️ marked a message as a question",
+    "type_just_words": "🌑 marked a message as just words",
+    "mood_broken": "🥀 chose the mood “broken”",
+    "mood_numb": "🌫️ chose the mood “numb”",
+    "mood_burning": "🔥 chose the mood “burning”",
+    "mood_restless": "🕷️ chose the mood “restless”",
+}
+
 SEASONS = {
     (12, 1, 2): "in the dead of winter",
     (3, 4, 5): "in the hollow of spring",

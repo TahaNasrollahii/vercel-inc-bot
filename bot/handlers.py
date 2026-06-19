@@ -140,6 +140,58 @@ def mood_keyboard() -> InlineKeyboardMarkup:
     ])
 
 
+async def deliver_to_keeper(
+    bot: Bot,
+    store: Store,
+    *,
+    user_id: int,
+    username: str,
+    chat_id: int,
+    message_id: int,
+    text: str,
+    label: str,
+) -> None:
+    """Carry one message to the keeper: notify, forward, react, confirm."""
+    alias = await store.get_alias(user_id)
+    alias_line = f"🪦 Alias: {alias}\n" if alias else ""
+    full_time, date_str, is_night = get_now_info()
+
+    counter = await store.incr_counter()
+    await store.add_sender(user_id)
+    await store.incr_day(date_str)
+
+    try:
+        await bot.send_message(
+            ADMIN_ID,
+            f"📩 {label}  #{counter}\n\n"
+            f"👤 Sender: {user_id} (@{username})\n"
+            f"{alias_line}"
+            f"💬 Carried: {text}\n"
+            f"🕰️ {full_time}\n\n"
+            f"To answer:\n/reply {user_id} your message",
+        )
+        await bot.forward_message(
+            chat_id=ADMIN_ID,
+            from_chat_id=chat_id,
+            message_id=message_id,
+        )
+    except Exception as e:
+        await bot.send_message(ADMIN_ID, f"⚠️ something was lost in transit:\n{e}")
+
+    try:
+        reaction_emoji = random.choice(DARK_REACTIONS)
+        await bot.set_message_reaction(
+            chat_id=chat_id,
+            message_id=message_id,
+            reaction=[ReactionTypeEmoji(emoji=reaction_emoji)],
+        )
+    except Exception:
+        pass
+
+    confirm = random.choice(NIGHT_CONFIRM_MESSAGES if is_night else CONFIRM_MESSAGES)
+    await bot.send_message(chat_id, confirm)
+
+
 async def get_stats_text(store: Store) -> str:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     today_count = await store.get_day(today)
@@ -645,48 +697,16 @@ async def cb_message_type(callback: CallbackQuery, bot: Bot, store: Store):
     except Exception:
         pass
 
-    username = pending.get("username") or "no_username"
-    alias = await store.get_alias(user_id)
-    alias_line = f"🪦 Alias: {alias}\n" if alias else ""
-    text = pending.get("text") or "[MEDIA]"
-    chat_id = int(pending["chat_id"])
-    message_id = int(pending["message_id"])
-    full_time, date_str, is_night = get_now_info()
-
-    counter = await store.incr_counter()
-    await store.add_sender(user_id)
-    await store.incr_day(date_str)
-
-    try:
-        await bot.send_message(
-            ADMIN_ID,
-            f"📩 {label}  #{counter}\n\n"
-            f"👤 Sender: {user_id} (@{username})\n"
-            f"{alias_line}"
-            f"💬 Carried: {text}\n"
-            f"🕰️ {full_time}\n\n"
-            f"To answer:\n/reply {user_id} your message",
-        )
-        await bot.forward_message(
-            chat_id=ADMIN_ID,
-            from_chat_id=chat_id,
-            message_id=message_id,
-        )
-    except Exception as e:
-        await bot.send_message(ADMIN_ID, f"⚠️ something was lost in transit:\n{e}")
-
-    try:
-        reaction_emoji = random.choice(DARK_REACTIONS)
-        await bot.set_message_reaction(
-            chat_id=chat_id,
-            message_id=message_id,
-            reaction=[ReactionTypeEmoji(emoji=reaction_emoji)],
-        )
-    except Exception:
-        pass
-
-    confirm = random.choice(NIGHT_CONFIRM_MESSAGES if is_night else CONFIRM_MESSAGES)
-    await bot.send_message(chat_id, confirm)
+    await deliver_to_keeper(
+        bot,
+        store,
+        user_id=user_id,
+        username=pending.get("username") or "no_username",
+        chat_id=int(pending["chat_id"]),
+        message_id=int(pending["message_id"]),
+        text=pending.get("text") or "[MEDIA]",
+        label=label,
+    )
 
 
 # ================== ADMIN REPLY ==================
@@ -779,7 +799,7 @@ async def admin_reply_any(message: Message, bot: Bot):
 
 # ================== USER → ADMIN ==================
 @router.message()
-async def handle_all(message: Message, state: FSMContext, store: Store):
+async def handle_all(message: Message, state: FSMContext, bot: Bot, store: Store):
     if message.text and message.text.startswith("/"):
         return
 
@@ -789,6 +809,22 @@ async def handle_all(message: Message, state: FSMContext, store: Store):
 
     user_id = message.from_user.id
     if await store.is_blocked(user_id):
+        return
+
+    # A reply to one of the bot's own messages is a continuation of the
+    # conversation — carry it straight through without asking what it is.
+    replied = message.reply_to_message
+    if replied and replied.from_user and replied.from_user.is_bot:
+        await deliver_to_keeper(
+            bot,
+            store,
+            user_id=user_id,
+            username=message.from_user.username or "no_username",
+            chat_id=message.chat.id,
+            message_id=message.message_id,
+            text=get_text(message),
+            label="↩️ REPLY",
+        )
         return
 
     await store.set_pending(user_id, {

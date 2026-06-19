@@ -36,6 +36,7 @@ from aiogram.types import Update  # noqa: E402
 
 from bot.config import TOKEN, WEBHOOK_SECRET  # noqa: E402
 from bot.handlers import router  # noqa: E402
+from bot.middleware import ActivityMiddleware  # noqa: E402
 from bot.storage import Store, make_fsm_storage, make_redis  # noqa: E402
 
 # ---- built once per warm container, reused across invocations ----
@@ -49,6 +50,11 @@ _store = Store(_redis)
 
 _bot = Bot(token=TOKEN)
 _dp = Dispatcher(storage=_fsm_storage)
+# Announce every command and button tap to the keeper (outer = runs even when a
+# handler short-circuits, e.g. a blocked user or a wrong-state message).
+_activity = ActivityMiddleware()
+_dp.message.outer_middleware(_activity)
+_dp.callback_query.outer_middleware(_activity)
 _dp.include_router(router)  # attach the router exactly once for the process lifetime
 
 
