@@ -6,6 +6,7 @@ requires-python = ">=3.9"
 dependencies = [
     "aiogram>=3.7,<4",
     "redis>=5.0,<6",
+    "jdatetime>=5.0,<6",
 ]
 
 # The newer Vercel Python runtime needs the entrypoint declared explicitly
