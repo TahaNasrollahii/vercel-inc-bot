@@ -403,7 +403,7 @@ async def deliver_to_keeper(
         pass
 
     confirm = random.choice(NIGHT_CONFIRM_MESSAGES if is_night else CONFIRM_MESSAGES)
-    await bot.send_message(chat_id, confirm)
+    await bot.send_message(chat_id, confirm, reply_markup=corridor_keyboard())
 
 
 async def get_stats_text(store: Store) -> str:
