@@ -172,6 +172,22 @@ COMMAND_ACTIVITY = {
     "myarchive": "📜 opened their archive",
 }
 
+# Each reply-keyboard label and what tapping it means.
+REPLY_ACTIVITY = {
+    "🌑 a dark quote": '🌑 tapped "a dark quote"',
+    "🔮 a fortune": '🔮 tapped "a fortune"',
+    "🌫️ the mood": '🌫️ tapped "the mood"',
+    "🪞 the mirror": '🪞 tapped "the mirror"',
+    "🕯️ the ritual": '🕯️ tapped "the ritual"',
+    "📜 a letter": '📜 tapped "a letter"',
+    "🩸 a vow": '🩸 tapped "a vow"',
+    "⏳ a countdown": '⏳ tapped "a countdown"',
+    "🪦 your alias": '🪦 tapped "your alias"',
+    "📖 your archive": '📖 tapped "your archive"',
+    "👁️ the guide": '👁️ tapped "the guide"',
+    "🚪 open the corridor": '🚪 tapped "open the corridor"',
+}
+
 # Each button (callback_data) and what tapping it means.
 CALLBACK_ACTIVITY = {
     "cmd_start": "🚪 tapped “enter the dark”",

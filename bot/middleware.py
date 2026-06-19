@@ -22,7 +22,7 @@ from aiogram.types import CallbackQuery, Message, TelegramObject
 
 from bot.config import ADMIN_ID
 from bot.storage import Store
-from bot.texts import CALLBACK_ACTIVITY, COMMAND_ACTIVITY
+from bot.texts import CALLBACK_ACTIVITY, COMMAND_ACTIVITY, REPLY_ACTIVITY
 from bot.timeutil import tehran_stamp
 
 
@@ -81,6 +81,9 @@ class ActivityMiddleware(BaseMiddleware):
                 if command is not None:
                     user = event.from_user
                     action = COMMAND_ACTIVITY.get(command, f"⌨️ used /{command}")
+                elif event.text and event.text in REPLY_ACTIVITY:
+                    user = event.from_user
+                    action = REPLY_ACTIVITY[event.text]
 
             elif isinstance(event, CallbackQuery):
                 user = event.from_user
