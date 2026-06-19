@@ -20,10 +20,12 @@ things had to change:
 
 ```
 api/webhook.py     # serverless entry point Telegram calls
+api/cron.py        # serverless endpoint that sends due vow reminders
 bot/config.py      # reads env vars
 bot/texts.py       # all the copy / quote pools
 bot/storage.py     # Redis-backed state + FSM storage builders
 bot/handlers.py    # every command/callback handler
+bot/middleware.py  # activity tracking → notifies the keeper
 set_webhook.py     # run once to register the webhook
 requirements.txt
 vercel.json
@@ -51,6 +53,7 @@ vercel.json
    | `ADMIN_ID`       | your numeric Telegram id (from @userinfobot)     |
    | `REDIS_URL`      | the Upstash Redis URL                             |
    | `WEBHOOK_SECRET` | any random string (optional but recommended)     |
+   | `CRON_SECRET`    | any random string guarding `/api/cron` (vows)    |
 
 3. Redeploy so the env vars take effect. Note your URL, e.g.
    `https://your-project.vercel.app`.
@@ -77,6 +80,29 @@ python set_webhook.py
 
 Open the bot in Telegram and send `/start`. Visiting the webhook URL in a
 browser should show "the corridor is open."
+
+### 4. Schedule the vow reminders (cron-job.org)
+
+The `/vow` feature stores a promise and a date; a separate endpoint,
+**`/api/cron`**, sweeps the stored vows and delivers any that have come due.
+Vercel runs nothing on its own here — an external scheduler must hit that
+endpoint. The free <https://cron-job.org> works well:
+
+1. Sign up at <https://cron-job.org> and create a new cronjob.
+2. **URL:** `https://your-project.vercel.app/api/cron`
+3. **Schedule:** once a day (e.g. every day at 09:00). Daily is enough — vow
+   reminders are measured in whole days.
+4. Under the request settings, add a **header**:
+   `Authorization: Bearer <the-same-CRON_SECRET>` — matching the `CRON_SECRET`
+   you set on Vercel. Without it the endpoint replies `401 unauthorized`.
+
+You can test it yourself in a browser/terminal:
+
+```bash
+curl -H "Authorization: Bearer the-same-secret" \
+  https://your-project.vercel.app/api/cron
+# -> reminders sent: <n>
+```
 
 ## Notes
 

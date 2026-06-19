@@ -13,7 +13,7 @@ The conversational copy and behaviour are otherwise identical.
 """
 
 import random
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
@@ -45,6 +45,11 @@ from bot.texts import (
     RITUAL_QUESTIONS,
     SEASONS,
     START_TEXT,
+    VOW_DAYS_ERROR,
+    VOW_DAYS_TEXT,
+    VOW_KEPT_TEXT,
+    VOW_SAVED_TEXT,
+    VOW_WRITE_TEXT,
 )
 
 router = Router()
@@ -70,6 +75,11 @@ class MirrorState(StatesGroup):
     waiting = State()
 
 
+class VowState(StatesGroup):
+    writing = State()
+    days = State()
+
+
 # ================== HELPERS ==================
 def get_text(message: Message) -> str:
     return message.text or message.caption or "[MEDIA]"
@@ -90,6 +100,22 @@ def get_now_info() -> tuple[str, str, bool]:
     is_night = now.hour in NIGHT_HOURS
     full_time = f"{time_str} — {date_str} — {season}"
     return full_time, date_str, is_night
+
+
+def vow_days_left(vow: dict) -> int:
+    """Whole days remaining until a vow's reminder, never below zero."""
+    remind_at = datetime.fromtimestamp(vow["remind_at"], tz=timezone.utc)
+    delta = remind_at - datetime.now(timezone.utc)
+    return max(0, delta.days)
+
+
+def vow_replace_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🩸 swear anew", callback_data="vow_replace"),
+            InlineKeyboardButton(text="✒️ let it stand", callback_data="vow_keep"),
+        ]
+    ])
 
 
 def main_keyboard() -> InlineKeyboardMarkup:
@@ -159,6 +185,7 @@ async def deliver_to_keeper(
     counter = await store.incr_counter()
     await store.add_sender(user_id)
     await store.incr_day(date_str)
+    await store.incr_user_messages(user_id)
 
     try:
         await bot.send_message(
@@ -222,6 +249,9 @@ async def start(message: Message, state: FSMContext, bot: Bot, store: Store):
     await state.clear()
     user = message.from_user
     identifier = f"@{user.username}" if user.username else f"ID: {user.id}"
+
+    _, date_str, _ = get_now_info()
+    await store.set_first_seen(user.id, date_str)
 
     if user.id == ADMIN_ID:
         stats_text = await get_stats_text(store)
@@ -389,6 +419,8 @@ async def ritual_q4(message: Message, state: FSMContext, bot: Bot, store: Store)
         f"IV. {RITUAL_QUESTIONS[3]}\n→ {answers[3]}"
     )
 
+    await store.incr_user_rituals(user_id)
+
     try:
         await bot.send_message(ADMIN_ID, ritual_record)
     except Exception:
@@ -425,6 +457,8 @@ async def letter_receive(message: Message, state: FSMContext, bot: Bot, store: S
     alias_line = f"🪦 Alias: {alias}\n" if alias else ""
     full_time, _, _ = get_now_info()
     text = get_text(message)
+
+    await store.incr_user_letters(user_id)
 
     try:
         await bot.send_message(
@@ -503,6 +537,114 @@ async def countdown_receive(message: Message, state: FSMContext):
             "use this format exactly:\n"
             "YYYY-MM-DD | what it is"
         )
+
+
+# ================== VOW ==================
+@router.message(Command("vow"))
+async def vow_start(message: Message, state: FSMContext, store: Store):
+    existing = await store.get_vow(message.from_user.id)
+    if existing:
+        days = vow_days_left(existing)
+        await message.answer(
+            "🕯️ a vow already burns in the dark:\n\n"
+            f"_{existing['text']}_\n\n"
+            f"⏳ {days} days remain before the dark returns for it.\n\n"
+            "swear anew, or let it stand?",
+            reply_markup=vow_replace_keyboard(),
+        )
+        return
+
+    await state.set_state(VowState.writing)
+    await message.answer(VOW_WRITE_TEXT)
+
+
+@router.callback_query(F.data == "vow_keep")
+async def cb_vow_keep(callback: CallbackQuery):
+    await callback.answer()
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+    await callback.message.answer(VOW_KEPT_TEXT)
+
+
+@router.callback_query(F.data == "vow_replace")
+async def cb_vow_replace(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+    await state.set_state(VowState.writing)
+    await callback.message.answer(VOW_WRITE_TEXT)
+
+
+@router.message(VowState.writing)
+async def vow_write(message: Message, state: FSMContext):
+    text = get_text(message)
+    await state.update_data(vow_text=text)
+    await state.set_state(VowState.days)
+    await message.answer(VOW_DAYS_TEXT)
+
+
+@router.message(VowState.days)
+async def vow_days(message: Message, state: FSMContext, store: Store):
+    raw = (message.text or "").strip()
+    try:
+        days = int(raw)
+    except ValueError:
+        await message.answer(VOW_DAYS_ERROR)
+        return
+
+    if not 1 <= days <= 365:
+        await message.answer(VOW_DAYS_ERROR)
+        return
+
+    data = await state.get_data()
+    await state.clear()
+
+    now = datetime.now(timezone.utc)
+    remind_at = now + timedelta(days=days)
+    vow = {
+        "text": data.get("vow_text", "[no vow]"),
+        "created_at": now.isoformat(),
+        "remind_at": remind_at.timestamp(),
+        "reminded": False,
+    }
+    await store.set_vow(message.from_user.id, vow)
+    await message.answer(VOW_SAVED_TEXT)
+
+
+# ================== MY ARCHIVE ==================
+@router.message(Command("myarchive"))
+async def my_archive(message: Message, store: Store):
+    user_id = message.from_user.id
+    stats = await store.get_user_stats(user_id)
+    alias = await store.get_alias(user_id)
+    vow = await store.get_vow(user_id)
+
+    alias_line = f"🪦 known as: {alias}" if alias else "🪦 known as: no one"
+    first_seen = stats["first_seen"] or "lost to the dark"
+
+    if vow:
+        vow_line = (
+            f"🩸 a vow burns:\n   _{vow['text']}_\n"
+            f"   ⏳ {vow_days_left(vow)} days until the dark returns for it"
+        )
+    else:
+        vow_line = "🩸 no vow burns in the dark"
+
+    await message.answer(
+        "📜 what the dark remembers of you:\n\n"
+        f"{alias_line}\n"
+        f"📩 words carried into the corridor: {stats['messages']}\n"
+        f"🕯️ rituals completed: {stats['rituals']}\n"
+        f"📜 letters left unsent: {stats['letters']}\n"
+        f"{vow_line}\n"
+        f"🚪 first crossed the threshold: {first_seen}\n\n"
+        "— nothing here has a name.\n"
+        "— only what you chose to leave behind."
+    )
 
 
 # ================== CONFESS ==================

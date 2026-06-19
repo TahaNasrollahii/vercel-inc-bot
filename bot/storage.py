@@ -14,9 +14,13 @@ Everything that used to live in memory now lives in Redis:
     message_counter    -> INT  "corridor:counter"
     messages_per_day   -> HASH "corridor:per_day"      (YYYY-MM-DD -> count)
     pending_messages   -> HASH "corridor:pending:<uid>" (the message awaiting a type)
+    vows               -> STR  "corridor:vow:<uid>"    (JSON vow awaiting its reminder)
+    per-user stats     -> INT  "corridor:user_stat:<uid>:<name>"
 
 The FSM (aiogram states) is handled separately by RedisStorage.
 """
+
+import json
 
 import redis.asyncio as aioredis
 from aiogram.fsm.storage.redis import RedisStorage
@@ -113,3 +117,46 @@ class Store:
         data = await self.r.hgetall(key)
         await self.r.delete(key)
         return data or None
+
+    # ----- vows (a promise the dark will remind you of) -----
+    async def set_vow(self, uid: int, vow: dict) -> None:
+        await self.r.set(f"{PREFIX}:vow:{uid}", json.dumps(vow))
+
+    async def get_vow(self, uid: int) -> dict | None:
+        raw = await self.r.get(f"{PREFIX}:vow:{uid}")
+        return json.loads(raw) if raw else None
+
+    async def delete_vow(self, uid: int) -> None:
+        await self.r.delete(f"{PREFIX}:vow:{uid}")
+
+    async def all_vow_keys(self) -> list[str]:
+        return [k async for k in self.r.scan_iter(match=f"{PREFIX}:vow:*")]
+
+    # ----- per-user stats -----
+    async def incr_user_messages(self, uid: int) -> None:
+        await self.r.incr(f"{PREFIX}:user_stat:{uid}:messages")
+
+    async def incr_user_rituals(self, uid: int) -> None:
+        await self.r.incr(f"{PREFIX}:user_stat:{uid}:rituals")
+
+    async def incr_user_letters(self, uid: int) -> None:
+        await self.r.incr(f"{PREFIX}:user_stat:{uid}:letters")
+
+    async def set_first_seen(self, uid: int, when: str) -> None:
+        # only the first arrival counts — never overwrite an earlier date
+        await self.r.setnx(f"{PREFIX}:user_stat:{uid}:first_seen", when)
+
+    async def get_user_stats(self, uid: int) -> dict[str, str | int]:
+        base = f"{PREFIX}:user_stat:{uid}"
+        messages, rituals, letters, first_seen = await self.r.mget(
+            f"{base}:messages",
+            f"{base}:rituals",
+            f"{base}:letters",
+            f"{base}:first_seen",
+        )
+        return {
+            "messages": int(messages or 0),
+            "rituals": int(rituals or 0),
+            "letters": int(letters or 0),
+            "first_seen": first_seen,
+        }

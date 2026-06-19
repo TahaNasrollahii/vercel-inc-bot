@@ -100,6 +100,46 @@ MIRROR_RESPONSES = {
     "root": "a root that grew through stone. slow. certain. unseen.",
 }
 
+VOW_WRITE_TEXT = (
+    "🩸\n\n"
+    "make a vow to yourself —\n"
+    "something you swear to do, or to become.\n\n"
+    "write it now. the dark will hold you to it. ✒️"
+)
+
+VOW_DAYS_TEXT = (
+    "⏳\n\n"
+    "how many days until the dark reminds you?\n\n"
+    "send a number between 1 and 365."
+)
+
+VOW_DAYS_ERROR = (
+    "❌ the dark counts only in whole days —\n"
+    "a single number, from 1 to 365.\n\n"
+    "try again."
+)
+
+VOW_SAVED_TEXT = (
+    "🕯️ the vow is sealed.\n\n"
+    "it rests in the dark now, counting down.\n"
+    "when the days run out, the corridor will return\n"
+    "to remind you of what you swore."
+)
+
+VOW_KEPT_TEXT = (
+    "the old vow stands, untouched.\n"
+    "the dark is still counting. ✒️"
+)
+
+# The reminder the cron endpoint carries back to the soul.
+VOW_REMINDER_TEXT = (
+    "🕯️ the dark returns, as promised.\n\n"
+    "once, in the corridor, you swore this:\n\n"
+    "_{text}_\n\n"
+    "the days have run their course.\n"
+    "the dark remembered. do you?"
+)
+
 RITUAL_QUESTIONS = [
     "what is the last thing you thought about before you came here?",
     "name something you've never said out loud.",
@@ -128,6 +168,8 @@ COMMAND_ACTIVITY = {
     "letter": "📜 began a letter",
     "countdown": "⏳ started a countdown",
     "alias": "🪦 set an alias",
+    "vow": "🩸 began a vow",
+    "myarchive": "📜 opened their archive",
 }
 
 # Each button (callback_data) and what tapping it means.
@@ -142,6 +184,8 @@ CALLBACK_ACTIVITY = {
     "mood_numb": "🌫️ chose the mood “numb”",
     "mood_burning": "🔥 chose the mood “burning”",
     "mood_restless": "🕷️ chose the mood “restless”",
+    "vow_replace": "🩸 chose to replace their vow",
+    "vow_keep": "✒️ chose to keep their vow",
 }
 
 SEASONS = {
@@ -171,7 +215,9 @@ HELP_TEXT = (
     "🕯️ /ritual — a four-question initiation\n\n"
     "📜 /letter — write a letter you'll never send\n\n"
     "⏳ /countdown — mark a moment in time\n\n"
+    "🩸 /vow — swear a vow the dark will remind you of\n\n"
     "🪦 /alias — choose a name for yourself\n\n"
+    "📜 /myarchive — what the dark remembers of you\n\n"
     "📖 /help — you are here.\n\n"
     "— no names leave this place.\n"
     "— no faces are kept.\n"
