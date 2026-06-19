@@ -16,6 +16,7 @@ Everything that used to live in memory now lives in Redis:
     pending_messages   -> HASH "corridor:pending:<uid>" (the message awaiting a type)
     vows               -> STR  "corridor:vow:<uid>"    (JSON vow awaiting its reminder)
     per-user stats     -> INT  "corridor:user_stat:<uid>:<name>"
+    broadcast chats    -> SET  "corridor:broadcast_chats"
 
 The FSM (aiogram states) is handled separately by RedisStorage.
 """
@@ -94,6 +95,21 @@ class Store:
 
     async def senders_list(self) -> list[int]:
         return sorted(int(x) for x in await self.r.smembers(f"{PREFIX}:senders"))
+
+    # ----- broadcast recipients -----
+    async def add_broadcast_chat(self, chat_id: int) -> None:
+        await self.r.sadd(f"{PREFIX}:broadcast_chats", chat_id)
+
+    async def broadcast_chat_ids(self, exclude_chat_id: int | None = None) -> list[int]:
+        # Existing private chats can be recovered from older user-id based sets:
+        # in a private Telegram chat, user_id == chat_id.
+        tracked = await self.r.smembers(f"{PREFIX}:broadcast_chats")
+        senders = await self.r.smembers(f"{PREFIX}:senders")
+        returning = await self.r.smembers(f"{PREFIX}:returning")
+        chat_ids = sorted(int(x) for x in tracked | senders | returning)
+        if exclude_chat_id is not None:
+            chat_ids = [chat_id for chat_id in chat_ids if chat_id != exclude_chat_id]
+        return chat_ids
 
     # ----- per-day message counts -----
     async def incr_day(self, date: str) -> None:

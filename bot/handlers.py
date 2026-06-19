@@ -12,6 +12,7 @@ Compared to the original polling bot, the only structural changes are:
 The conversational copy and behaviour are otherwise identical.
 """
 
+import asyncio
 import random
 import re
 from datetime import datetime, timedelta, timezone
@@ -85,6 +86,11 @@ class MirrorState(StatesGroup):
 class VowState(StatesGroup):
     writing = State()
     days = State()
+
+
+class BroadcastState(StatesGroup):
+    waiting_for_content = State()
+    waiting_for_confirmation = State()
 
 
 # ================== HELPERS ==================
@@ -306,6 +312,9 @@ def admin_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="🔓 lift the curse", callback_data="admin_unblock_prompt"),
             InlineKeyboardButton(text="🌑 refresh", callback_data="admin_stats"),
         ],
+        [
+            InlineKeyboardButton(text="📣 broadcast", callback_data="admin_broadcast"),
+        ],
     ])
 
 
@@ -419,6 +428,32 @@ async def get_stats_text(store: Store) -> str:
         f"🚫 souls cast out: {blocked}\n\n"
         f"🕰️ last refreshed: {refreshed_at}"
     )
+
+
+async def run_broadcast(
+    bot: Bot,
+    *,
+    admin_chat_id: int,
+    from_chat_id: int,
+    message_id: int,
+    recipients: list[int],
+) -> None:
+    sent = 0
+    failed = 0
+
+    for chat_id in recipients:
+        try:
+            await bot.copy_message(
+                chat_id=chat_id,
+                from_chat_id=from_chat_id,
+                message_id=message_id,
+            )
+            sent += 1
+        except Exception:
+            failed += 1
+        await asyncio.sleep(0.05)
+
+    await bot.send_message(admin_chat_id, f"✅ Sent to {sent} users. Failed: {failed}")
 
 
 # ================== START ==================
@@ -914,6 +949,55 @@ async def stats(message: Message, store: Store):
     await message.answer(stats_text, reply_markup=admin_keyboard())
 
 
+# ================== BROADCAST ==================
+@router.message(Command("broadcast"))
+async def broadcast_start(message: Message, state: FSMContext):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    await state.set_state(BroadcastState.waiting_for_content)
+    await message.answer(
+        "Send me the message you want to broadcast (text, photo, video, sticker — anything)."
+    )
+
+
+@router.message(BroadcastState.waiting_for_content, F.from_user.id == ADMIN_ID)
+async def broadcast_content(message: Message, state: FSMContext, store: Store):
+    recipients = await store.broadcast_chat_ids(exclude_chat_id=message.chat.id)
+    await state.update_data(
+        broadcast_from_chat_id=message.chat.id,
+        broadcast_message_id=message.message_id,
+        broadcast_recipients=recipients,
+    )
+    await state.set_state(BroadcastState.waiting_for_confirmation)
+    await message.answer(f"Ready to send to {len(recipients)} users. Confirm? (yes/no)")
+
+
+@router.message(BroadcastState.waiting_for_confirmation, F.from_user.id == ADMIN_ID)
+async def broadcast_confirm(message: Message, state: FSMContext, bot: Bot):
+    answer = (message.text or "").strip().lower()
+    if answer not in {"yes", "no"}:
+        await message.answer("Please reply yes or no.")
+        return
+
+    data = await state.get_data()
+    await state.clear()
+
+    if answer == "no":
+        await message.answer("Broadcast cancelled.")
+        return
+
+    recipients = [int(chat_id) for chat_id in data.get("broadcast_recipients", [])]
+    await message.answer("Broadcast started.")
+    await run_broadcast(
+        bot,
+        admin_chat_id=message.chat.id,
+        from_chat_id=int(data["broadcast_from_chat_id"]),
+        message_id=int(data["broadcast_message_id"]),
+        recipients=recipients,
+    )
+
+
 # ================== ADMIN CALLBACKS ==================
 @router.callback_query(F.data == "admin_stats")
 async def cb_admin_stats(callback: CallbackQuery, store: Store):
@@ -926,6 +1010,19 @@ async def cb_admin_stats(callback: CallbackQuery, store: Store):
     except Exception:
         pass
     await callback.answer("🌑 the archive stirs...")
+
+
+@router.callback_query(F.data == "admin_broadcast")
+async def cb_admin_broadcast(callback: CallbackQuery, state: FSMContext):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("you don't belong here.", show_alert=True)
+        return
+
+    await callback.answer()
+    await state.set_state(BroadcastState.waiting_for_content)
+    await callback.message.answer(
+        "Send me the message you want to broadcast (text, photo, video, sticker — anything)."
+    )
 
 
 @router.callback_query(F.data == "admin_archive")

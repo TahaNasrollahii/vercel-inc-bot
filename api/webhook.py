@@ -44,6 +44,12 @@ _loop = asyncio.new_event_loop()
 asyncio.set_event_loop(_loop)
 _lock = threading.Lock()
 
+
+def _run_loop() -> None:
+    asyncio.set_event_loop(_loop)
+    _loop.run_forever()
+
+
 _fsm_storage = make_fsm_storage()
 _redis = make_redis()
 _store = Store(_redis)
@@ -56,6 +62,9 @@ _activity = ActivityMiddleware()
 _dp.message.outer_middleware(_activity)
 _dp.callback_query.outer_middleware(_activity)
 _dp.include_router(router)  # attach the router exactly once for the process lifetime
+
+_loop_thread = threading.Thread(target=_run_loop, daemon=True)
+_loop_thread.start()
 
 
 async def _process(update_data: dict) -> None:
@@ -90,7 +99,8 @@ class handler(BaseHTTPRequestHandler):
             update_data = json.loads(raw)
             # Serialize so the reused event loop is never run concurrently.
             with _lock:
-                _loop.run_until_complete(_process(update_data))
+                future = asyncio.run_coroutine_threadsafe(_process(update_data), _loop)
+                future.result()
         except Exception as exc:  # never 500 back to Telegram or it retries forever
             print(f"webhook error: {exc}", file=sys.stderr)
 

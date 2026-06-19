@@ -74,6 +74,9 @@ class ActivityMiddleware(BaseMiddleware):
             user = None
 
             if isinstance(event, Message):
+                if event.from_user is not None:
+                    await store.add_broadcast_chat(event.chat.id)
+
                 command = _command_of(event)
                 if command is not None:
                     user = event.from_user
