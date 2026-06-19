@@ -298,7 +298,7 @@ def corridor_keyboard() -> ReplyKeyboardMarkup:
         keyboard=rows,
         resize_keyboard=True,
         is_persistent=False,
-        input_field_placeholder="speak into the dark…",
+        input_field_placeholder="Whisper…",
     )
 
 
