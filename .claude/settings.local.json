@@ -3,7 +3,14 @@
     "allow": [
       "Bash(python *)",
       "Bash(pip install *)",
-      "Bash(set PYTHONIOENCODING=utf-8)"
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(npm -v)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(TOKEN=123:fake ADMIN_ID=1 REDIS_URL=redis://localhost:6379 python -c ' *)",
+      "Bash(TOKEN=123456:fakeTokenForImportCheck ADMIN_ID=1 REDIS_URL=redis://localhost:6379 python -c ' *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }

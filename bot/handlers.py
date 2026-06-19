@@ -592,7 +592,7 @@ async def countdown_start(message: Message, state: FSMContext):
         "  • 11 دی 1405\n\n"
         "then, if you wish, name it after the date or a “|”.\n\n"
         "for example:\n"
-        "۱۴۰۵/۱۰/۱۱ پایان سال\n\n"
+        "1405/10/11 پایان سال\n\n"
         f"(today is {today})"
     )
 
@@ -605,7 +605,7 @@ async def countdown_receive(message: Message, state: FSMContext):
         await message.answer(
             "❌ the moment was lost in the dark.\n\n"
             "name a Persian-calendar date, like:\n"
-            "۱۴۰۵/۱۰/۱۱ پایان سال"
+            "1405/10/11 پایان سال"
         )
         return
 

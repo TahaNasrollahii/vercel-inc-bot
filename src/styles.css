@@ -296,7 +296,7 @@ button {
   font-size: 0.82rem;
   color: var(--ink-faint);
 }
-.name { color: var(--ink-dim); }
+.name { color: #b86110; }
 .keeper { color: var(--ember); }
 
 /* ============================================================

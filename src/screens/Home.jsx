@@ -54,7 +54,7 @@ export default function Home({ me, navigate }) {
       <footer className="home-foot">
         {name ? (
           <>
-            the corridor sees you as <span className="name">{name}</span>
+            the corridor sees you as a <span className="name">faceless soul</span>
           </>
         ) : (
           'a nameless soul'

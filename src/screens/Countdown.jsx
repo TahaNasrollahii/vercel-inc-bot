@@ -53,7 +53,7 @@ export default function Countdown({ onBack }) {
         dir="auto"
         value={date}
         maxLength={120}
-        placeholder="۱۴۰۵/۱۰/۱۱ پایان سال"
+        placeholder="example: 1405/10/11 پایان سال"
         onChange={(e) => setDate(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && reckon()}
       />
