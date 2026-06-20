@@ -52,6 +52,7 @@ from bot.texts import (  # noqa: E402
     MOOD_RESPONSES,
     NIGHT_CONFIRM_MESSAGES,
     RITUAL_QUESTIONS,
+    escape_md_v2,
 )
 from bot.webapp_auth import InitDataError, validate_init_data  # noqa: E402
 
@@ -539,7 +540,9 @@ async def _admin_reply(user: dict, payload: dict) -> dict:
         await _bot.send_message(uid, KEEPER_REPLY_OUTRO, parse_mode="MarkdownV2")
     else:
         await _bot.send_message(
-            uid, KEEPER_REPLY_TEXT.format(reply=text), parse_mode="Markdown"
+            uid,
+            KEEPER_REPLY_TEXT.format(reply=escape_md_v2(text)),
+            parse_mode="MarkdownV2",
         )
 
     await _store.add_thread_message(uid, {

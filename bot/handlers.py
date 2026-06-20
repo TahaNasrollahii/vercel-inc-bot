@@ -49,6 +49,7 @@ from bot.texts import (
     KEEPER_REPLY_OUTRO,
     KEEPER_REPLY_TEXT,
     MESSAGE_TYPES,
+    escape_md_v2,
     MIRROR_RESPONSES,
     MOOD_RESPONSES,
     NIGHT_CONFIRM_MESSAGES,
@@ -1182,8 +1183,8 @@ async def admin_reply(message: Message, bot: Bot, store: Store):
 
         await bot.send_message(
             user_id,
-            KEEPER_REPLY_TEXT.format(reply=reply_text),
-            parse_mode="Markdown"
+            KEEPER_REPLY_TEXT.format(reply=escape_md_v2(reply_text)),
+            parse_mode="MarkdownV2"
         )
         await store.add_thread_message(user_id, {
             "dir": "in",

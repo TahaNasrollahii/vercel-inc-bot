@@ -13,7 +13,8 @@
       "Bash(git commit *)",
       "Bash(TOKEN=123:fake ADMIN_ID=1 REDIS_URL=redis://localhost:6379 WEBAPP_URL=https://vercel-inc-bot.vercel.app python -c ' *)",
       "Bash(TOKEN=123456:fake ADMIN_ID=1 REDIS_URL=redis://localhost:6379 PYTHONIOENCODING=utf-8 python -c ' *)",
-      "Bash(TOKEN=123456:fake ADMIN_ID=1 REDIS_URL=redis://localhost:6379 WEBAPP_URL=https://x.vercel.app PYTHONIOENCODING=utf-8 python -c ' *)"
+      "Bash(TOKEN=123456:fake ADMIN_ID=1 REDIS_URL=redis://localhost:6379 WEBAPP_URL=https://x.vercel.app PYTHONIOENCODING=utf-8 python -c ' *)",
+      "Bash(PYTHONIOENCODING=utf-8 python -c \"from bot.texts import KEEPER_REPLY_TEXT, escape_md_v2; print\\(KEEPER_REPLY_TEXT.format\\(reply=escape_md_v2\\('hey there. \\(test_1\\) - done!'\\)\\)\\)\")"
     ]
   }
 }

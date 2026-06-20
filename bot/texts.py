@@ -1,5 +1,7 @@
 """All the static copy, quote pools and lookup tables for the corridor."""
 
+import re
+
 # ================== CONSTANTS ==================
 DARK_REACTIONS = ["🕯️", "🌑", "🪦", "✒️", "🕸️", "🩸", "🌒", "💀", "⛓️"]
 NIGHT_HOURS = range(0, 4)
@@ -270,13 +272,25 @@ CHAT_TEXT = (
 
 # Single-message form (text-only reply). `{reply}` is the keeper's words.
 # Sent with parse_mode="Markdown".
+# Sent with parse_mode="MarkdownV2" so "reply" can be both bold *and* italic
+# (legacy Markdown can't nest). `{reply}` must be MarkdownV2-escaped first —
+# use escape_md_v2() at the call site.
 KEEPER_REPLY_TEXT = (
-    "a voice returns from the other side of darkness:\n\n"
+    "_a voice returns from the other side of darkness:_\n\n"
     "{reply}\n\n"
     "─────────────────\n"
-    "the dark spoke. now you may —\n"
-    "reply, if you have something to say."
+    "_the dark spoke\\. now you may —_\n"
+    "_*reply*, if you have something to say\\._"
 )
+
+
+_MD_V2_ESCAPE = re.compile(r"([_*\[\]()~`>#+\-=|{}.!\\])")
+
+
+def escape_md_v2(text: str) -> str:
+    """Escape text for Telegram MarkdownV2 so keeper/user content can't break the
+    surrounding bold/italic formatting."""
+    return _MD_V2_ESCAPE.sub(r"\\\1", text or "")
 
 # Three-part form, used when the answer carries media: an intro line, then the
 # attachment itself, then an outro line.
