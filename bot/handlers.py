@@ -496,12 +496,7 @@ async def start(message: Message, state: FSMContext, bot: Bot, store: Store):
         await store.add_returning(user.id)
         await message.answer(START_TEXT, reply_markup=main_keyboard())
 
-    # Force-clear any stale cached reply keyboard (e.g. from an older
-    # is_persistent=True deployment) so Telegram resets its client-side state.
-    await message.answer("·", reply_markup=ReplyKeyboardRemove())
-
-    # Install the persistent dark keyboard beneath the message box. A separate
-    # message because a single message can carry only one reply_markup.
+    # Install the persistent dark keyboard beneath the message box.
     await message.answer(
         "the corridor opens beneath you.\nchoose a door — or simply speak. 🕯️",
         reply_markup=corridor_keyboard(),
@@ -1275,27 +1270,27 @@ async def reply_keyboard_dispatch(
     if command == "chat":
         return await chat(message)
     elif command == "dark":
-        await dark_quote(message)
+        return await dark_quote(message)
     elif command == "fortune":
-        await fortune(message)
+        return await fortune(message)
     elif command == "mood":
-        await mood(message)
+        return await mood(message)
     elif command == "mirror":
-        await mirror(message, state)
+        return await mirror(message, state)
     elif command == "ritual":
-        await ritual_start(message, state)
+        return await ritual_start(message, state)
     elif command == "letter":
-        await letter_start(message, state)
+        return await letter_start(message, state)
     elif command == "vow":
-        await vow_start(message, state, store)
+        return await vow_start(message, state, store)
     elif command == "countdown":
-        await countdown_start(message, state)
+        return await countdown_start(message, state)
     elif command == "alias":
-        await set_alias(message, store)
+        return await set_alias(message, store)
     elif command == "myarchive":
-        await my_archive(message, store)
+        return await my_archive(message, store)
     elif command == "help":
-        await help_command(message)
+        return await help_command(message)
 
     await message.answer("·", reply_markup=corridor_keyboard())
 
