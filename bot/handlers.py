@@ -523,7 +523,10 @@ async def help_command(message: Message):
 # ================== CHAT ==================
 @router.message(Command("chat"))
 async def chat(message: Message):
-    await message.answer(CHAT_TEXT, reply_markup=main_keyboard())
+    # The whisper prompt only needs a way out — "enter the dark"/"speak"/"guide"
+    # make no sense once a soul is here to whisper. Typing carries the message;
+    # "never mind" backs out.
+    await message.answer(CHAT_TEXT, reply_markup=cancel_keyboard())
 
 
 # ================== DARK QUOTE ==================
@@ -1155,7 +1158,7 @@ async def cb_start(callback: CallbackQuery, store: Store):
 @router.callback_query(F.data == "cmd_chat")
 async def cb_chat(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer(CHAT_TEXT, reply_markup=main_keyboard())
+    await callback.message.answer(CHAT_TEXT, reply_markup=cancel_keyboard())
 
 
 @router.callback_query(F.data == "cmd_help")
