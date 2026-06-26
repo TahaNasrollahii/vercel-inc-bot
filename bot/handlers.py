@@ -1313,7 +1313,18 @@ async def admin_reply(message: Message, bot: Bot, store: Store):
 
 
 # ================== ADMIN REPLY (ANY CONTENT) ==================
-@router.message(F.reply_to_message, F.from_user.id == ADMIN_ID)
+def _admin_replying_to_archive(message: Message) -> bool:
+    """Only treat native replies as keeper→soul delivery when they answer an
+    archive notice (the ones that carry a ``Sender:`` line). Other admin
+    replies — e.g. a forwarded message sent as a reply — must fall through."""
+    replied = message.reply_to_message
+    if not replied:
+        return False
+    replied_text = replied.text or replied.caption or ""
+    return "Sender:" in replied_text
+
+
+@router.message(F.reply_to_message, F.from_user.id == ADMIN_ID, _admin_replying_to_archive)
 async def admin_reply_any(message: Message, bot: Bot, store: Store):
     """Admin replies (Telegram native reply) to an archive message with ANY
     content — text, photo(s), video, voice, document, etc. — and it is carried
@@ -1412,6 +1423,23 @@ async def reply_keyboard_dispatch(
 
 
 # ================== ADMIN FORWARD TO USER ==================
+def _is_forwarded_message(message: Message) -> bool:
+    """Telegram marks forwards with ``forward_origin`` (Bot API 7+). Some
+    clients/updates still only populate the legacy forward_* fields, so accept
+    any of them."""
+    if message.forward_origin is not None:
+        return True
+    if message.is_automatic_forward:
+        return True
+    if message.forward_date is not None:
+        return True
+    if message.forward_from is not None:
+        return True
+    if message.forward_from_chat is not None:
+        return True
+    return False
+
+
 def _forward_label(uid: int, aliases: dict, identities: dict) -> str:
     """A human label for the soul-picker. The bot's own notion of a name is the
     alias; the Mini App identity cache (name/username) is only filled once a soul
@@ -1424,7 +1452,7 @@ def _forward_label(uid: int, aliases: dict, identities: dict) -> str:
     return f"{label} ({uid})" if label else str(uid)
 
 
-@router.message(lambda msg: getattr(msg, 'forward_origin', None) is not None, F.from_user.id == ADMIN_ID)
+@router.message(_is_forwarded_message, F.from_user.id == ADMIN_ID)
 async def admin_forward_message(message: Message, state: FSMContext, bot: Bot, store: Store):
     """Admin forwards a message to the bot to send to a specific user."""
     senders = await store.senders_list()
@@ -1540,6 +1568,9 @@ async def handle_all(message: Message, state: FSMContext, bot: Bot, store: Store
         return
 
     user_id = message.from_user.id
+    if user_id == ADMIN_ID:
+        return
+
     if await store.is_blocked(user_id):
         return
 
