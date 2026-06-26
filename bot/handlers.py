@@ -99,7 +99,8 @@ class BroadcastState(StatesGroup):
     waiting_for_confirmation = State()
 
 
-class ForwardMessageState(StatesGroup):
+class RelayState(StatesGroup):
+    waiting_for_content = State()
     waiting_for_user_selection = State()
 
 
@@ -336,6 +337,7 @@ def admin_keyboard() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(text="📣 broadcast", callback_data="admin_broadcast"),
+            InlineKeyboardButton(text="📨 relay to soul", callback_data="admin_relay"),
         ],
     ])
 
@@ -1098,6 +1100,169 @@ async def broadcast_confirm(message: Message, state: FSMContext, bot: Bot):
     )
 
 
+# ================== ADMIN RELAY TO ONE SOUL ==================
+def _relay_label(uid: int, aliases: dict, identities: dict) -> str:
+    """A human label for the soul-picker."""
+    alias = aliases.get(str(uid))
+    identity = identities.get(uid, {})
+    name = identity.get("name")
+    username = identity.get("username")
+    label = alias or name or (f"@{username}" if username else None)
+    return f"{label} ({uid})" if label else str(uid)
+
+
+def _is_forwarded_message(message: Message) -> bool:
+    """Telegram marks forwards with ``forward_origin`` (Bot API 7+). Some
+    clients/updates still only populate the legacy forward_* fields."""
+    if message.forward_origin is not None:
+        return True
+    if message.is_automatic_forward:
+        return True
+    if message.forward_date is not None:
+        return True
+    if message.forward_from is not None:
+        return True
+    if message.forward_from_chat is not None:
+        return True
+    return False
+
+
+def build_relay_keyboard(users_data: list, page: int) -> InlineKeyboardMarkup:
+    per_page = 10
+    start = page * per_page
+    end = start + per_page
+    page_users = users_data[start:end]
+
+    builder = []
+    for u in page_users:
+        builder.append([
+            InlineKeyboardButton(text=u["label"], callback_data=f"fwd_to:{u['id']}")
+        ])
+
+    nav_row = []
+    if page > 0:
+        nav_row.append(InlineKeyboardButton(text="⬅️ Prev", callback_data=f"fwd_page:{page - 1}"))
+    if end < len(users_data):
+        nav_row.append(InlineKeyboardButton(text="Next ➡️", callback_data=f"fwd_page:{page + 1}"))
+
+    if nav_row:
+        builder.append(nav_row)
+
+    builder.append([InlineKeyboardButton(text="Cancel", callback_data="fwd_cancel")])
+    return InlineKeyboardMarkup(inline_keyboard=builder)
+
+
+async def _begin_relay_picker(message: Message, state: FSMContext, store: Store) -> None:
+    senders = await store.senders_list()
+    if not senders:
+        await state.clear()
+        await message.answer("No users have interacted with the bot yet.")
+        return
+
+    aliases = await store.all_aliases()
+    identities = await store.all_identities()
+    users_data = [
+        {"id": uid, "label": _relay_label(uid, aliases, identities)}
+        for uid in senders
+    ]
+
+    await state.set_state(RelayState.waiting_for_user_selection)
+    await state.update_data(
+        relay_from_chat_id=message.chat.id,
+        relay_message_id=message.message_id,
+        fwd_users=users_data,
+        fwd_page=0,
+    )
+
+    keyboard = build_relay_keyboard(users_data, 0)
+    await message.answer("Choose a soul to receive this:", reply_markup=keyboard)
+
+
+@router.message(Command("relay"))
+async def relay_start(message: Message, state: FSMContext):
+    if message.from_user.id != ADMIN_ID:
+        return
+    await state.set_state(RelayState.waiting_for_content)
+    await message.answer(
+        "Forward or send the message you want to relay.\n"
+        "I will ask which soul should receive it. 🕯️"
+    )
+
+
+@router.message(RelayState.waiting_for_content, F.from_user.id == ADMIN_ID)
+async def admin_relay_capture(message: Message, state: FSMContext, store: Store):
+    await _begin_relay_picker(message, state, store)
+
+
+@router.message(_is_forwarded_message, F.from_user.id == ADMIN_ID)
+async def admin_forward_message(message: Message, state: FSMContext, store: Store):
+    """Shortcut: forward straight to the bot without tapping relay first."""
+    await _begin_relay_picker(message, state, store)
+
+
+@router.message(RelayState.waiting_for_user_selection, F.from_user.id == ADMIN_ID)
+async def admin_relay_replace(message: Message, state: FSMContext, store: Store):
+    """A new message while the picker is open replaces the relay target."""
+    await _begin_relay_picker(message, state, store)
+
+
+@router.callback_query(RelayState.waiting_for_user_selection, F.data.startswith("fwd_page:"))
+async def process_relay_pagination(callback: CallbackQuery, state: FSMContext):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("Not authorized.", show_alert=True)
+        return
+
+    page = int(callback.data.split(":")[1])
+    data = await state.get_data()
+    users_data = data.get("fwd_users", [])
+
+    await state.update_data(fwd_page=page)
+    keyboard = build_relay_keyboard(users_data, page)
+    await callback.message.edit_reply_markup(reply_markup=keyboard)
+    await callback.answer()
+
+
+@router.callback_query(RelayState.waiting_for_user_selection, F.data == "fwd_cancel")
+async def process_relay_cancel(callback: CallbackQuery, state: FSMContext):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("Not authorized.", show_alert=True)
+        return
+
+    await state.clear()
+    await callback.message.edit_text("Relay cancelled.")
+    await callback.answer()
+
+
+@router.callback_query(RelayState.waiting_for_user_selection, F.data.startswith("fwd_to:"))
+async def process_relay_user_selection(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("Not authorized.", show_alert=True)
+        return
+
+    target_uid = int(callback.data.split(":")[1])
+    data = await state.get_data()
+    msg_id = data.get("relay_message_id")
+    from_chat_id = data.get("relay_from_chat_id", ADMIN_ID)
+
+    if not msg_id:
+        await callback.answer("Error: message not found.", show_alert=True)
+        await state.clear()
+        return
+
+    try:
+        await bot.copy_message(
+            chat_id=target_uid,
+            from_chat_id=int(from_chat_id),
+            message_id=int(msg_id),
+        )
+        await callback.message.edit_text(f"✔ Delivered to {target_uid}.")
+    except Exception as e:
+        await callback.message.edit_text(f"❌ Failed to deliver:\n{e}")
+
+    await state.clear()
+    await callback.answer()
+
+
 # ================== ADMIN CALLBACKS ==================
 @router.callback_query(F.data == "admin_stats")
 async def cb_admin_stats(callback: CallbackQuery, store: Store):
@@ -1122,6 +1287,20 @@ async def cb_admin_broadcast(callback: CallbackQuery, state: FSMContext):
     await state.set_state(BroadcastState.waiting_for_content)
     await callback.message.answer(
         "Send me the message you want to broadcast (text, photo, video, sticker — anything)."
+    )
+
+
+@router.callback_query(F.data == "admin_relay")
+async def cb_admin_relay(callback: CallbackQuery, state: FSMContext):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("you don't belong here.", show_alert=True)
+        return
+
+    await callback.answer()
+    await state.set_state(RelayState.waiting_for_content)
+    await callback.message.answer(
+        "Forward or send the message you want to relay.\n"
+        "I will ask which soul should receive it. 🕯️"
     )
 
 
@@ -1422,139 +1601,26 @@ async def reply_keyboard_dispatch(
     await message.answer("·", reply_markup=corridor_keyboard())
 
 
-# ================== ADMIN FORWARD TO USER ==================
-def _is_forwarded_message(message: Message) -> bool:
-    """Telegram marks forwards with ``forward_origin`` (Bot API 7+). Some
-    clients/updates still only populate the legacy forward_* fields, so accept
-    any of them."""
-    if message.forward_origin is not None:
-        return True
-    if message.is_automatic_forward:
-        return True
-    if message.forward_date is not None:
-        return True
-    if message.forward_from is not None:
-        return True
-    if message.forward_from_chat is not None:
-        return True
-    return False
-
-
-def _forward_label(uid: int, aliases: dict, identities: dict) -> str:
-    """A human label for the soul-picker. The bot's own notion of a name is the
-    alias; the Mini App identity cache (name/username) is only filled once a soul
-    opens the app, so we fall back through alias → name → @username → bare id."""
-    alias = aliases.get(str(uid))
-    identity = identities.get(uid, {})
-    name = identity.get("name")
-    username = identity.get("username")
-    label = alias or name or (f"@{username}" if username else None)
-    return f"{label} ({uid})" if label else str(uid)
-
-
-@router.message(_is_forwarded_message, F.from_user.id == ADMIN_ID)
-async def admin_forward_message(message: Message, state: FSMContext, bot: Bot, store: Store):
-    """Admin forwards a message to the bot to send to a specific user."""
-    senders = await store.senders_list()
-    aliases = await store.all_aliases()
-    identities = await store.all_identities()
-
-    if not senders:
-        await message.answer("No users have interacted with the bot yet.")
+# ================== ADMIN FALLBACK ==================
+@router.message(F.from_user.id == ADMIN_ID)
+async def admin_unhandled(message: Message, state: FSMContext):
+    """Keeper messages that no other handler caught — usually copy-paste instead
+    of relay, or a stray tap while not in a flow."""
+    if message.text and message.text.startswith("/"):
         return
-
-    await state.set_state(ForwardMessageState.waiting_for_user_selection)
-    await state.update_data(forwarded_msg_id=message.message_id)
-
-    # Store the labelled users list in state so pagination needn't re-query Redis.
-    users_data = [
-        {"id": uid, "label": _forward_label(uid, aliases, identities)}
-        for uid in senders
-    ]
-
-    await state.update_data(fwd_users=users_data, fwd_page=0)
-
-    keyboard = build_forward_keyboard(users_data, 0)
-    await message.answer("Choose a user to forward this to:", reply_markup=keyboard)
-
-
-def build_forward_keyboard(users_data: list, page: int) -> InlineKeyboardMarkup:
-    PER_PAGE = 10
-    start = page * PER_PAGE
-    end = start + PER_PAGE
-    page_users = users_data[start:end]
-    
-    builder = []
-    for u in page_users:
-        builder.append([InlineKeyboardButton(text=u["label"], callback_data=f"fwd_to:{u['id']}")])
-        
-    nav_row = []
-    if page > 0:
-        nav_row.append(InlineKeyboardButton(text="⬅️ Prev", callback_data=f"fwd_page:{page - 1}"))
-    if end < len(users_data):
-        nav_row.append(InlineKeyboardButton(text="Next ➡️", callback_data=f"fwd_page:{page + 1}"))
-        
-    if nav_row:
-        builder.append(nav_row)
-        
-    builder.append([InlineKeyboardButton(text="Cancel", callback_data="fwd_cancel")])
-    return InlineKeyboardMarkup(inline_keyboard=builder)
-
-
-@router.callback_query(ForwardMessageState.waiting_for_user_selection, F.data.startswith("fwd_page:"))
-async def process_forward_pagination(callback: CallbackQuery, state: FSMContext):
-    if callback.from_user.id != ADMIN_ID:
-        await callback.answer("Not authorized.", show_alert=True)
-        return
-        
-    page = int(callback.data.split(":")[1])
-    data = await state.get_data()
-    users_data = data.get("fwd_users", [])
-    
-    await state.update_data(fwd_page=page)
-    keyboard = build_forward_keyboard(users_data, page)
-    await callback.message.edit_reply_markup(reply_markup=keyboard)
-    await callback.answer()
-
-
-@router.callback_query(ForwardMessageState.waiting_for_user_selection, F.data == "fwd_cancel")
-async def process_forward_cancel(callback: CallbackQuery, state: FSMContext):
-    if callback.from_user.id != ADMIN_ID:
-        await callback.answer("Not authorized.", show_alert=True)
-        return
-        
-    await state.clear()
-    await callback.message.edit_text("Forward cancelled.")
-    await callback.answer()
-
-
-@router.callback_query(ForwardMessageState.waiting_for_user_selection, F.data.startswith("fwd_to:"))
-async def process_forward_user_selection(callback: CallbackQuery, state: FSMContext, bot: Bot):
-    if callback.from_user.id != ADMIN_ID:
-        await callback.answer("Not authorized.", show_alert=True)
-        return
-        
-    target_uid = int(callback.data.split(":")[1])
-    data = await state.get_data()
-    msg_id = data.get("forwarded_msg_id")
-    
-    if not msg_id:
-        await callback.answer("Error: Message ID not found.", show_alert=True)
-        await state.clear()
-        return
-        
-    try:
-        await bot.forward_message(
-            chat_id=target_uid,
-            from_chat_id=ADMIN_ID,
-            message_id=msg_id
-        )
-        await callback.message.edit_text(f"✔ Forwarded successfully to {target_uid}.")
-    except Exception as e:
-        await callback.message.edit_text(f"❌ Failed to forward:\n{e}")
-        
-    await state.clear()
-    await callback.answer()
+    current = await state.get_state()
+    if current is not None:
+        # State left over from before RelayState replaced ForwardMessageState.
+        if str(current).startswith("ForwardMessageState:"):
+            await state.clear()
+        else:
+            return
+    await message.answer(
+        "To send something to one soul:\n"
+        "• tap 📨 relay to soul on the keeper panel, or\n"
+        "• send /relay, then forward or send the message\n"
+        "• or forward a message here directly"
+    )
 
 
 # ================== USER → ADMIN ==================
