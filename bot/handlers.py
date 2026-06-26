@@ -1412,28 +1412,40 @@ async def reply_keyboard_dispatch(
 
 
 # ================== ADMIN FORWARD TO USER ==================
+def _forward_label(uid: int, aliases: dict, identities: dict) -> str:
+    """A human label for the soul-picker. The bot's own notion of a name is the
+    alias; the Mini App identity cache (name/username) is only filled once a soul
+    opens the app, so we fall back through alias → name → @username → bare id."""
+    alias = aliases.get(str(uid))
+    identity = identities.get(uid, {})
+    name = identity.get("name")
+    username = identity.get("username")
+    label = alias or name or (f"@{username}" if username else None)
+    return f"{label} ({uid})" if label else str(uid)
+
+
 @router.message(lambda msg: getattr(msg, 'forward_origin', None) is not None, F.from_user.id == ADMIN_ID)
 async def admin_forward_message(message: Message, state: FSMContext, bot: Bot, store: Store):
     """Admin forwards a message to the bot to send to a specific user."""
     senders = await store.senders_list()
+    aliases = await store.all_aliases()
     identities = await store.all_identities()
-    
+
     if not senders:
         await message.answer("No users have interacted with the bot yet.")
         return
-        
+
     await state.set_state(ForwardMessageState.waiting_for_user_selection)
     await state.update_data(forwarded_msg_id=message.message_id)
-    
-    # Store the users list in state for pagination
-    users_data = []
-    for uid in senders:
-        identity = identities.get(uid, {})
-        name = identity.get("name") or "Unknown"
-        users_data.append({"id": uid, "name": name})
-        
+
+    # Store the labelled users list in state so pagination needn't re-query Redis.
+    users_data = [
+        {"id": uid, "label": _forward_label(uid, aliases, identities)}
+        for uid in senders
+    ]
+
     await state.update_data(fwd_users=users_data, fwd_page=0)
-    
+
     keyboard = build_forward_keyboard(users_data, 0)
     await message.answer("Choose a user to forward this to:", reply_markup=keyboard)
 
@@ -1446,7 +1458,7 @@ def build_forward_keyboard(users_data: list, page: int) -> InlineKeyboardMarkup:
     
     builder = []
     for u in page_users:
-        builder.append([InlineKeyboardButton(text=f"{u['name']} ({u['id']})", callback_data=f"fwd_to:{u['id']}")])
+        builder.append([InlineKeyboardButton(text=u["label"], callback_data=f"fwd_to:{u['id']}")])
         
     nav_row = []
     if page > 0:
