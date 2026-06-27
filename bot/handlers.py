@@ -1130,14 +1130,18 @@ async def broadcast_confirm(message: Message, state: FSMContext, bot: Bot):
 
 
 # ================== ADMIN RELAY TO ONE SOUL ==================
-def _relay_label(uid: int, aliases: dict, identities: dict) -> str:
-    """A human label for the soul-picker."""
-    alias = aliases.get(str(uid))
+def _relay_label(uid: int, identities: dict) -> str:
+    """username (if any) - name (if any) - id"""
     identity = identities.get(uid, {})
-    name = identity.get("name")
+    name = (identity.get("name") or "").strip()
     username = identity.get("username")
-    label = alias or name or (f"@{username}" if username else None)
-    return f"{label} ({uid})" if label else str(uid)
+    parts = []
+    if username:
+        parts.append(f"@{username}")
+    if name:
+        parts.append(name)
+    parts.append(str(uid))
+    return " - ".join(parts)
 
 
 def _is_forwarded_message(message: Message) -> bool:
@@ -1188,10 +1192,9 @@ async def _begin_relay_picker(message: Message, state: FSMContext, store: Store)
         await message.answer("No users have interacted with the bot yet.")
         return
 
-    aliases = await store.all_aliases()
     identities = await store.all_identities()
     users_data = [
-        {"id": uid, "label": _relay_label(uid, aliases, identities)}
+        {"id": uid, "label": _relay_label(uid, identities)}
         for uid in senders
     ]
 

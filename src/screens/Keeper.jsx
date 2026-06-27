@@ -21,18 +21,15 @@ const PREVIEW_GLYPH = {
   document: '📄',
 }
 
-// The keeper's label for a soul, per preference:
-//   name + username → "name - @username"
-//   name only       → "name - id"
-//   username only    → "@username - id"
-//   neither          → "id"
+// username (if any) - name (if any) - id
 function who(t) {
   const name = (t.name || '').trim()
   const username = t.username ? `@${t.username}` : ''
-  if (name && username) return `${name} - ${username}`
-  if (name) return `${name} - ${t.uid}`
-  if (username) return `${username} - ${t.uid}`
-  return `${t.uid}`
+  const parts = []
+  if (username) parts.push(username)
+  if (name) parts.push(name)
+  parts.push(`${t.uid}`)
+  return parts.join(' - ')
 }
 
 // A shorter label for cramped spots (bubble meta): name, else @username, else id.
