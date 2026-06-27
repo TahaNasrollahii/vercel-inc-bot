@@ -1,12 +1,5 @@
-// The back-and-forth bubble list, shared by the soul's inbox and the keeper's
-// console. `perspective` decides whose messages sit on the right (their own):
-//   - 'soul'   → the soul reads it: their words ('out') on the right,
-//                the dark's answers ('in') on the left.
-//   - 'keeper' → the keeper reads it: their replies ('in') on the right,
-//                the soul's words ('out') on the left.
-// Media files never live in the thread (only a kind label) — the real file is in
-// whichever Telegram chat received it, hence the "opened in your chat" hint on
-// anything incoming.
+// The back-and-forth whisper list, shared by the soul's inbox and the keeper's
+// console. `perspective` decides whose messages sit on the right.
 
 const MEDIA_LABELS = {
   photo: { glyph: '📷', label: 'a photo' },
@@ -19,7 +12,6 @@ const MEDIA_LABELS = {
   media: { glyph: '📎', label: 'an attachment' },
 }
 
-// Bare "[MEDIA]" / "[voice]" markers from older or bot-chat entries.
 const BARE = /^\[(media|photo|video|voice|audio|document|gif|sticker|animation)\]$/i
 
 function resolveKind(m) {
@@ -60,21 +52,24 @@ export default function Thread({ messages, perspective = 'soul', theirLabel }) {
         const kind = resolveKind(m)
         const caption = captionOf(m, kind)
         const media = kind ? MEDIA_LABELS[kind] : null
-        // "mine" = the viewer's own message → right-aligned ('out' styling).
         const mine = perspective === 'keeper' ? m.dir === 'in' : m.dir === 'out'
         return (
-          <div key={i} className={`bubble ${mine ? 'out' : 'in'}`}>
+          <div
+            key={i}
+            className={`whisper-bubble ${mine ? 'whisper-out' : 'whisper-in'}`}
+            style={{ animationDelay: `${i * 0.06}s` }}
+          >
             {media && (
-              <div className="media-card">
-                <span className="media-card-glyph">{media.glyph}</span>
-                <span className="media-card-label">
+              <div className="bubble-media-card">
+                <span className="bubble-media-glyph">{media.glyph}</span>
+                <span className="bubble-media-label">
                   {media.label}
-                  {!mine && <span className="media-hint">opened in your chat ↗</span>}
+                  {!mine && <span className="bubble-media-hint">opened in your chat ↗</span>}
                 </span>
               </div>
             )}
-            {caption && <p className="bubble-text">{caption}</p>}
-            <span className="bubble-meta">
+            {caption && <p className="whisper-text">{caption}</p>}
+            <span className="whisper-meta">
               {mine ? 'you' : theirs} · {formatTime(m.ts)}
             </span>
           </div>

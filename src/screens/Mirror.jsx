@@ -1,11 +1,12 @@
 import { useState } from 'react'
 
 import Button from '../components/Button.jsx'
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call, track } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { notify } from '../lib/telegram.js'
 
+// The Mirror Chamber — gaze into the dark and see your shape
 export default function Mirror({ onBack }) {
   const d = DOOR.mirror
   const [word, setWord] = useState('')
@@ -22,30 +23,30 @@ export default function Mirror({ onBack }) {
       track('looked into the mirror')
       notify('success')
     } catch {
-      /* ignore */
+      /* the mirror stays silent */
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-      <p className="prompt">
+    <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+      <p className="whisper text-center" style={{ marginBottom: '1.5rem' }}>
         if the darkness inside you had a shape —
         <br />
         what would it be? answer in one word.
       </p>
 
       <input
-        className="field"
+        className="stone-input"
         value={word}
         maxLength={32}
-        placeholder="one word…"
+        placeholder="one word..."
         onChange={(e) => setWord(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && gaze()}
       />
 
-      <div className="actions">
+      <div className="actions-row">
         <Button onClick={gaze} loading={loading} disabled={!word.trim()}>
           look into the mirror
         </Button>
@@ -54,11 +55,11 @@ export default function Mirror({ onBack }) {
       {response && (
         <>
           <p className="revelation-label">the mirror speaks</p>
-          <blockquote className="revelation reveal" key={response}>
+          <blockquote className="revelation revelation-animate" key={response}>
             {response}
           </blockquote>
         </>
       )}
-    </Screen>
+    </Room>
   )
 }

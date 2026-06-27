@@ -1,8 +1,9 @@
 import { SECTIONS } from '../lib/doors.js'
 import { haptic } from '../lib/telegram.js'
 
-// The corridor itself: a descent of doors. Each door enters with a staggered
-// fade so the list assembles out of the dark rather than snapping in.
+// The Entrance Hall — the first room of the castle.
+// Arched doorways lead deeper into the castle. Each doorway is a threshold
+// you cross, not a button you press.
 export default function Home({ me, navigate }) {
   const name = me?.user?.username
     ? `@${me.user.username}`
@@ -10,43 +11,47 @@ export default function Home({ me, navigate }) {
 
   let index = 0
 
-  // Admin-only sections (the keeper's console) are hidden from ordinary souls.
+  // The keeper's passage is hidden from ordinary souls
   const sections = SECTIONS.filter((s) => !s.admin || me?.is_admin)
 
   return (
-    <div className="home">
-      <div className="ember" aria-hidden="true" />
-
-      <header className="hero">
-        <div className="candle" aria-hidden="true">🕯️</div>
-        <h1 className="title">the corridor</h1>
-        <p className="whisper">no name is asked. no light is given.</p>
+    <div className="entrance-hall">
+      {/* The castle gate — your first sight */}
+      <header className="castle-gate">
+        <div className="great-candle" aria-hidden="true">🕯️</div>
+        <h1 className="castle-title">the castle</h1>
+        <p className="castle-subtitle">no name is asked. no light is given.</p>
       </header>
 
-      <nav className="doors">
+      {/* Decorative arch divider */}
+      <div className="arch-line" aria-hidden="true" />
+
+      {/* The corridor of doorways */}
+      <nav className="corridor">
         {sections.map((section) => (
-          <section className="door-section" key={section.label}>
-            <div className="section-label">{section.label}</div>
+          <section className="corridor-section" key={section.label}>
+            <div className="wall-inscription">{section.label}</div>
             {section.doors.map((door) => (
               <button
                 key={door.key}
-                className="door"
-                style={{ animationDelay: `${0.045 * index++}s` }}
+                className="archway"
+                style={{ animationDelay: `${0.06 * index++}s` }}
                 onClick={() => {
                   haptic('light')
                   navigate(door.key)
                 }}
               >
-                <span className="door-glyph">{door.glyph}</span>
-                <span className="door-text">
-                  <span className="door-title">{door.title}</span>
-                  <span className="door-sub">{door.sub}</span>
+                <span className="archway-glyph">{door.glyph}</span>
+                <span className="archway-text">
+                  <span className="archway-title">{door.title}</span>
+                  <span className="archway-sub">{door.sub}</span>
                 </span>
                 {door.key === 'inbox' && me?.unread > 0 && (
-                  <span className="door-badge">{me.unread}</span>
+                  <span className="ember-badge">{me.unread}</span>
                 )}
-                <span className="door-chevron" aria-hidden="true">
-                  ›
+                <span className="archway-passage" aria-hidden="true">
+                  <span className="archway-passage-line" />
+                  <span className="archway-passage-dot" />
                 </span>
               </button>
             ))}
@@ -54,15 +59,16 @@ export default function Home({ me, navigate }) {
         ))}
       </nav>
 
-      <footer className="home-foot">
+      {/* Carved inscription at the bottom */}
+      <footer className="entrance-inscription">
         {name ? (
           <>
-            the corridor sees you as a <span className="name">faceless soul</span>
+            the castle sees you as <span style={{ color: 'rgba(176,141,87,0.5)' }}>a nameless soul</span>
           </>
         ) : (
-          'a nameless soul'
+          'a soul enters, unnamed'
         )}
-        {me?.is_admin && <span className="keeper"> · the keeper</span>}
+        {me?.is_admin && <span style={{ color: 'var(--ember-soft)' }}> · the keeper</span>}
       </footer>
     </div>
   )

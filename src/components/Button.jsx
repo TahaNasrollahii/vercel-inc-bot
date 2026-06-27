@@ -1,19 +1,23 @@
 import { haptic } from '../lib/telegram.js'
 
-// The corridor's action button. `variant`: 'primary' (ember) or 'ghost'.
-// While `loading`, shows `loadingText` (or a spinner dot) and an ember pulse.
+// A carved stone button — feels like pressing into ancient masonry.
+// Variants: 'ember' (burning), 'ghost' (ethereal), default (stone).
 export default function Button({
   children,
   onClick,
   disabled = false,
   loading = false,
   loadingText,
-  variant = 'primary',
+  variant = 'ember',
 }) {
+  const variantClass = variant === 'ember' ? ' stone-btn-ember'
+    : variant === 'ghost' ? ' stone-btn-ghost'
+    : ''
+
   return (
     <button
       type="button"
-      className={`btn btn-${variant}${loading ? ' is-loading' : ''}`}
+      className={`stone-btn${variantClass}${loading ? ' stone-btn-loading' : ''}`}
       disabled={disabled || loading}
       onClick={(e) => {
         haptic('medium')
@@ -21,9 +25,9 @@ export default function Button({
       }}
     >
       {loading ? (
-        <span className="btn-loading">
-          <span className="btn-spinner" aria-hidden="true" />
-          {loadingText || 'one moment…'}
+        <span className="stone-btn-loading-text">
+          <span className="arcane-spinner" aria-hidden="true" />
+          {loadingText || 'one moment...'}
         </span>
       ) : (
         children

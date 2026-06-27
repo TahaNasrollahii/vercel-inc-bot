@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call, track } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { haptic, notify } from '../lib/telegram.js'
@@ -12,6 +12,7 @@ const MOODS = [
   { key: 'restless', glyph: '🕷️', label: 'restless' },
 ]
 
+// The Mood Alcove — tell the dark how you feel
 export default function Mood({ onBack }) {
   const d = DOOR.mood
   const [active, setActive] = useState(null)
@@ -29,29 +30,31 @@ export default function Mood({ onBack }) {
       track(`chose the mood: ${mood.label}`)
       notify('success')
     } catch {
-      /* ignore */
+      /* the dark accepts all feelings */
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Screen glyph={d.glyph} title={d.title} subtitle="how does the dark find you?" onBack={onBack}>
-      <div className="chips">
+    <Room glyph={d.glyph} title={d.title} subtitle="how does the dark find you?" onBack={onBack}>
+      <div className="stone-chips">
         {MOODS.map((m) => (
           <button
             key={m.key}
             type="button"
-            className={`chip${active === m.key ? ' active' : ''}`}
+            className={`stone-chip${active === m.key ? ' active' : ''}`}
             onClick={() => pick(m)}
           >
-            <span className="chip-glyph">{m.glyph}</span>
+            <span className="stone-chip-glyph">{m.glyph}</span>
             <span>{m.label}</span>
           </button>
         ))}
       </div>
 
-      {response && <blockquote className="revelation reveal" key={active}>{response}</blockquote>}
-    </Screen>
+      {response && (
+        <blockquote className="revelation revelation-animate" key={active}>{response}</blockquote>
+      )}
+    </Room>
   )
 }

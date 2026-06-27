@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 
 import Button from '../components/Button.jsx'
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import Thread, { formatTime } from '../components/Thread.jsx'
 import { call } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { toBase64, tooBig } from '../lib/media.js'
 import { haptic, notify, setBackButton } from '../lib/telegram.js'
 
-// The keeper's console: every soul's conversation in one place. Two views —
-// the list of chats, and one open chat with its full history and a reply box.
+// The Watchtower — the keeper's console. Every soul's conversation in one place.
 
 const PREVIEW_GLYPH = {
   photo: '📷',
@@ -21,7 +20,6 @@ const PREVIEW_GLYPH = {
   document: '📄',
 }
 
-// username (if any) - name (if any) - id
 function who(t) {
   const name = (t.name || '').trim()
   const username = t.username ? `@${t.username}` : ''
@@ -32,7 +30,6 @@ function who(t) {
   return parts.join(' - ')
 }
 
-// A shorter label for cramped spots (bubble meta): name, else @username, else id.
 function shortName(t) {
   if (t.name) return t.name.trim()
   if (t.username) return `@${t.username}`
@@ -48,23 +45,21 @@ function preview(t) {
 
 export default function Keeper({ me, onBack }) {
   const d = DOOR.keeper
-  const [selected, setSelected] = useState(null) // the open chat's thread, or null
+  const [selected, setSelected] = useState(null)
 
-  // Native Telegram back: while a chat is open, back returns to the list;
-  // otherwise it leaves the console. (No-op in dev — Screen's ← is used there.)
   useEffect(() => {
     setBackButton(true, selected ? () => setSelected(null) : onBack)
   }, [selected, onBack])
 
   const back = selected ? () => setSelected(null) : onBack
 
-  // Defense in depth — the server 403s any admin_* call from a non-keeper, but
-  // never even show the console to a non-admin who reached this key.
   if (!me?.is_admin) {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <p className="whisper center error">this sight is not yours.</p>
-      </Screen>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <p className="whisper text-center" style={{ color: '#cf8275' }}>
+          this sight is not yours.
+        </p>
+      </Room>
     )
   }
 
@@ -76,10 +71,9 @@ export default function Keeper({ me, onBack }) {
 
 function ChatList({ onOpen, onBack }) {
   const d = DOOR.keeper
-  const [state, setState] = useState('loading') // loading | ready | error
+  const [state, setState] = useState('loading')
   const [threads, setThreads] = useState([])
 
-  // Load on mount, then a light poll so new arrivals surface without reopening.
   useEffect(() => {
     let alive = true
     const run = async () => {
@@ -102,45 +96,54 @@ function ChatList({ onOpen, onBack }) {
   }, [])
 
   return (
-    <Screen glyph={d.glyph} title={d.title} subtitle="every voice in the corridor" onBack={onBack}>
-      {state === 'loading' && <p className="whisper center">gathering the voices…</p>}
-      {state === 'error' && <p className="whisper center error">the dark would not answer.</p>}
+    <Room glyph={d.glyph} title={d.title} subtitle="every voice in the castle" onBack={onBack}>
+      {state === 'loading' && (
+        <div className="castle-loading">
+          <span className="loading-sigil">👁️🗨️</span>
+          <p className="loading-whisper">gathering the voices...</p>
+        </div>
+      )}
+      {state === 'error' && (
+        <p className="whisper text-center" style={{ color: '#cf8275' }}>
+          the dark would not answer.
+        </p>
+      )}
 
       {state === 'ready' && threads.length === 0 && (
-        <p className="empty">{'no one has spoken yet.\nthe corridor is silent.'}</p>
+        <p className="castle-empty">{'no one has spoken yet.\nthe castle is silent.'}</p>
       )}
 
       {state === 'ready' && threads.length > 0 && (
-        <div className="chat-list">
+        <div className="watchtower-list">
           {threads.map((t) => (
             <button
               key={t.uid}
-              className={`chat-row${t.new ? ' is-new' : ''}`}
+              className={`watchtower-row${t.new ? ' unanswered' : ''}`}
               onClick={() => {
                 haptic('light')
                 onOpen(t)
               }}
             >
-              <span className="chat-row-main">
-                <span className="chat-row-name">
+              <span className="watchtower-row-main">
+                <span className="watchtower-row-name">
                   {who(t)}
-                  {t.new && <span className="chat-row-dot" aria-label="unanswered" />}
+                  {t.new && <span className="watchtower-dot" aria-label="unanswered" />}
                 </span>
-                <span className="chat-row-preview">{preview(t)}</span>
+                <span className="watchtower-row-preview">{preview(t)}</span>
               </span>
-              <span className="chat-row-time">{formatTime(t.ts)}</span>
+              <span className="watchtower-row-time">{formatTime(t.ts)}</span>
             </button>
           ))}
         </div>
       )}
-    </Screen>
+    </Room>
   )
 }
 
 function Chat({ thread, onBack }) {
   const d = DOOR.keeper
   const uid = thread.uid
-  const [state, setState] = useState('loading') // loading | ready | error
+  const [state, setState] = useState('loading')
   const [messages, setMessages] = useState([])
 
   async function load() {
@@ -155,31 +158,39 @@ function Chat({ thread, onBack }) {
 
   useEffect(() => {
     load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid])
 
   return (
-    <Screen glyph={d.glyph} title={who(thread)} subtitle={`#${uid}`} onBack={onBack}>
-      {state === 'loading' && <p className="whisper center">opening the thread…</p>}
-      {state === 'error' && <p className="whisper center error">the dark would not answer.</p>}
+    <Room glyph={d.glyph} title={who(thread)} subtitle={`#${uid}`} onBack={onBack}>
+      {state === 'loading' && (
+        <div className="castle-loading">
+          <span className="loading-sigil">👁️</span>
+          <p className="loading-whisper">opening the thread...</p>
+        </div>
+      )}
+      {state === 'error' && (
+        <p className="whisper text-center" style={{ color: '#cf8275' }}>
+          the dark would not answer.
+        </p>
+      )}
 
       {state === 'ready' && (
         <>
           {messages.length === 0 ? (
-            <p className="empty">{'nothing yet between you.'}</p>
+            <p className="castle-empty">{'nothing yet between you.'}</p>
           ) : (
             <Thread messages={messages} perspective="keeper" theirLabel={shortName(thread)} />
           )}
           <Composer uid={uid} onSent={load} />
         </>
       )}
-    </Screen>
+    </Room>
   )
 }
 
 function Composer({ uid, onSent }) {
   const [text, setText] = useState('')
-  const [media, setMedia] = useState(null) // {kind, data, mime, filename, previewUrl}
+  const [media, setMedia] = useState(null)
   const [mediaError, setMediaError] = useState('')
   const [attaching, setAttaching] = useState(false)
   const [recording, setRecording] = useState(false)
@@ -201,7 +212,6 @@ function Composer({ uid, onSent }) {
         recorder.current.stream?.getTracks().forEach((t) => t.stop())
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function clearMedia() {
@@ -214,7 +224,7 @@ function Composer({ uid, onSent }) {
     if (!file) return
     setMediaError('')
     if (tooBig(file.size)) {
-      setMediaError('too heavy for the corridor — keep it under 3 MB.')
+      setMediaError('too heavy for the castle — keep it under 3 MB.')
       return
     }
     setAttaching(true)
@@ -280,7 +290,7 @@ function Composer({ uid, onSent }) {
       timer.current = setInterval(() => setSeconds((s) => s + 1), 1000)
       haptic('medium')
     } catch {
-      setMediaError('the corridor could not reach your microphone.')
+      setMediaError('the castle could not reach your microphone.')
     }
   }
 
@@ -310,13 +320,13 @@ function Composer({ uid, onSent }) {
   }
 
   return (
-    <div className="composer">
+    <div className="composer-area">
       <textarea
-        className="field area"
+        className="stone-input stone-textarea"
         value={text}
         maxLength={4000}
         rows={3}
-        placeholder="answer from the dark…"
+        placeholder="answer from the dark..."
         onChange={(e) => setText(e.target.value)}
       />
 
@@ -336,16 +346,16 @@ function Composer({ uid, onSent }) {
       />
 
       {!media && !attaching && (
-        <div className="attach-row">
-          <button type="button" className="attach-btn" onClick={() => photoInput.current?.click()}>
+        <div className="attach-bar">
+          <button type="button" className="attach-stone" onClick={() => photoInput.current?.click()}>
             📷 photo
           </button>
-          <button type="button" className="attach-btn" onClick={() => videoInput.current?.click()}>
+          <button type="button" className="attach-stone" onClick={() => videoInput.current?.click()}>
             🎬 video
           </button>
           <button
             type="button"
-            className={`attach-btn${recording ? ' rec' : ''}`}
+            className={`attach-stone${recording ? ' recording' : ''}`}
             onClick={toggleRecord}
           >
             {recording ? `⏺ ${seconds}s · stop` : '🎤 voice'}
@@ -354,30 +364,30 @@ function Composer({ uid, onSent }) {
       )}
 
       {attaching && (
-        <p className="attaching">
-          <span className="btn-spinner" aria-hidden="true" /> drawing it into the dark…
+        <p className="attach-loading">
+          <span className="arcane-spinner" aria-hidden="true" /> drawing it into the dark...
         </p>
       )}
 
       {media && (
-        <div className="media-chip reveal">
+        <div className="media-preview-chip revelation-animate">
           <MediaPreview media={media} />
-          <span className="media-name">{media.kind}</span>
-          <button type="button" className="media-remove" onClick={clearMedia} aria-label="remove">
+          <span className="media-preview-label">{media.kind}</span>
+          <button type="button" className="media-preview-remove" onClick={clearMedia} aria-label="remove">
             ×
           </button>
         </div>
       )}
 
       {mediaError && (
-        <p className="whisper error center" style={{ marginTop: '0.75rem' }}>{mediaError}</p>
+        <p className="whisper text-center mt-small" style={{ color: '#cf8275' }}>{mediaError}</p>
       )}
 
-      <div className="actions">
+      <div className="actions-row">
         <Button
           onClick={send}
           loading={sending}
-          loadingText="carrying it through…"
+          loadingText="carrying it through..."
           disabled={(!text.trim() && !media) || recording || attaching}
         >
           send into the dark
@@ -389,10 +399,10 @@ function Composer({ uid, onSent }) {
 
 function MediaPreview({ media }) {
   if (media.kind === 'photo') {
-    return <img className="media-thumb" src={media.previewUrl} alt="" />
+    return <img className="media-preview-thumb" src={media.previewUrl} alt="" />
   }
   if (media.kind === 'video') {
-    return <video className="media-thumb" src={media.previewUrl} muted playsInline />
+    return <video className="media-preview-thumb" src={media.previewUrl} muted playsInline />
   }
-  return <audio className="media-audio" src={media.previewUrl} controls />
+  return <audio className="media-preview-audio" src={media.previewUrl} controls />
 }

@@ -8,30 +8,29 @@ import { isDev, setBackButton } from './lib/telegram.js'
 import Home from './screens/Home.jsx'
 import Atmosphere from './components/Atmosphere.jsx'
 
-// The shell: boots by verifying who you are, then drives a simple navigation
-// stack. Home is the corridor; every other key resolves to its feature screen
-// (or a Placeholder until that screen's phase lands). The native Telegram back
-// button mirrors the stack depth.
+// The Castle Shell — drives navigation as room transitions.
+// Every screen is a room. Moving between them is walking through the castle.
 export default function App() {
   const [me, setMe] = useState(null)
   const [boot, setBoot] = useState('loading') // loading | ready | error
   const [error, setError] = useState('')
   const [stack, setStack] = useState(['home'])
-  const [prevView, setPrevView] = useState(null)
+  const [prevRoom, setPrevRoom] = useState(null)
   const [transitioning, setTransitioning] = useState(false)
 
   const navigate = useCallback((key) => {
     track(`entered ${DOOR[key]?.title || key}`)
     setStack((s) => {
-      setPrevView(s[s.length - 1])
+      setPrevRoom(s[s.length - 1])
       setTransitioning(true)
       return [...s, key]
     })
   }, [])
+
   const back = useCallback(
     () => setStack((s) => {
       if (s.length > 1) {
-        setPrevView(s[s.length - 1])
+        setPrevRoom(s[s.length - 1])
         setTransitioning(true)
         return s.slice(0, -1)
       }
@@ -40,16 +39,18 @@ export default function App() {
     [],
   )
 
+  // Clear the transition state after the animation completes
   useEffect(() => {
     if (transitioning) {
       const timer = setTimeout(() => {
-        setPrevView(null)
+        setPrevRoom(null)
         setTransitioning(false)
-      }, 450)
+      }, 650)
       return () => clearTimeout(timer)
     }
   }, [transitioning])
 
+  // Authenticate the soul entering the castle
   useEffect(() => {
     call('me')
       .then((data) => {
@@ -64,21 +65,19 @@ export default function App() {
 
   const current = stack[stack.length - 1]
 
+  // Telegram native back button
   useEffect(() => {
     setBackButton(stack.length > 1, back)
   }, [stack.length, back])
 
-  // Opening the inbox clears the unread mark server-side, so drop the home
-  // badge locally too (otherwise it lingers until the app is reopened).
+  // Clear inbox badge when entering the whispering chamber
   useEffect(() => {
     if (current === 'inbox') {
       setMe((m) => (m && m.unread ? { ...m, unread: 0 } : m))
     }
   }, [current])
 
-  // Near-real-time inbox badge: poll the unread count on an interval and
-  // immediately whenever the app regains focus. Serverless can't push, so this
-  // light poll is the closest thing — cheap (just a count) and self-correcting.
+  // Poll for unread whispers
   useEffect(() => {
     if (boot !== 'ready') return undefined
     let alive = true
@@ -89,7 +88,7 @@ export default function App() {
           setMe((m) => (m ? { ...m, unread: r.unread } : m))
         }
       } catch {
-        /* ignore — the next tick will try again */
+        /* the dark is patient */
       }
     }
     const id = setInterval(poll, 15000)
@@ -104,18 +103,19 @@ export default function App() {
     }
   }, [boot])
 
-  if (boot === 'loading') return <Boot>the dark stirs…</Boot>
+  // Boot states — the castle awakens
+  if (boot === 'loading') return <CastleBoot>the dark stirs...</CastleBoot>
   if (boot === 'error') {
     return (
-      <Boot error>
+      <CastleBoot error>
         the gate would not open.
         <br />
-        <span className="reason">{error}</span>
-      </Boot>
+        <span className="boot-reason">{error}</span>
+      </CastleBoot>
     )
   }
 
-  function renderScreen(key) {
+  function renderRoom(key) {
     if (key === 'home') return <Home me={me} navigate={navigate} />
     const Comp = SCREENS[key]
     return Comp ? (
@@ -125,33 +125,35 @@ export default function App() {
     )
   }
 
-  const currentView = renderScreen(current)
-  const oldView = prevView ? renderScreen(prevView) : null
+  const currentRoom = renderRoom(current)
+  const exitingRoom = prevRoom ? renderRoom(prevRoom) : null
 
   return (
-    <main className="app">
+    <main className="castle">
       <Atmosphere />
-      <div className="scene-container">
-        {oldView && (
-          <div key={prevView + '-exit'} className="view view-exit" aria-hidden="true">
-            {oldView}
+      <div className="room-viewport">
+        {exitingRoom && (
+          <div key={prevRoom + '-exit'} className="room room-exit" aria-hidden="true">
+            {exitingRoom}
           </div>
         )}
-        <div key={current} className="view">
-          {currentView}
+        <div key={current} className="room room-enter">
+          {currentRoom}
         </div>
       </div>
-      {isDev && <p className="devnote">dev preview — outside Telegram</p>}
+      {isDev && <p className="dev-indicator">dev preview — outside telegram</p>}
     </main>
   )
 }
 
-function Boot({ children, error }) {
+// The castle boot screen — the castle awakens from slumber
+function CastleBoot({ children, error }) {
   return (
-    <main className="corridor">
+    <main className="castle-boot">
       <Atmosphere />
-      <h1 className="title">the corridor</h1>
-      <p className={`whisper${error ? ' error' : ''}`}>{children}</p>
+      <div className="great-candle" aria-hidden="true">🕯️</div>
+      <h1 className="boot-title">the castle</h1>
+      <p className={`boot-whisper${error ? ' error' : ''}`}>{children}</p>
     </main>
   )
 }

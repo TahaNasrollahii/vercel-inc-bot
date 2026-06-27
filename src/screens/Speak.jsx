@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import Button from '../components/Button.jsx'
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call, track } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { toBase64, tooBig } from '../lib/media.js'
@@ -13,11 +13,12 @@ const TYPES = [
   { key: 'just_words', glyph: '🌑', label: 'just words' },
 ]
 
+// The Whispering Chamber — speak words into the dark
 export default function Speak({ onBack }) {
   const d = DOOR.speak
   const [text, setText] = useState('')
   const [type, setType] = useState(null)
-  const [media, setMedia] = useState(null) // {kind, data, mime, filename, previewUrl}
+  const [media, setMedia] = useState(null)
   const [mediaError, setMediaError] = useState('')
   const [attaching, setAttaching] = useState(false)
   const [recording, setRecording] = useState(false)
@@ -31,7 +32,6 @@ export default function Speak({ onBack }) {
   const chunks = useRef([])
   const timer = useRef(null)
 
-  // Tidy up the preview object URL and any live recording on unmount.
   useEffect(() => {
     return () => {
       if (media?.previewUrl) URL.revokeObjectURL(media.previewUrl)
@@ -41,7 +41,6 @@ export default function Speak({ onBack }) {
         recorder.current.stream?.getTracks().forEach((t) => t.stop())
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function clearMedia() {
@@ -54,7 +53,7 @@ export default function Speak({ onBack }) {
     if (!file) return
     setMediaError('')
     if (tooBig(file.size)) {
-      setMediaError('too heavy for the corridor — keep it under 3 MB.')
+      setMediaError('too heavy for the castle — keep it under 3 MB.')
       return
     }
     setAttaching(true)
@@ -120,7 +119,7 @@ export default function Speak({ onBack }) {
       timer.current = setInterval(() => setSeconds((s) => s + 1), 1000)
       haptic('medium')
     } catch {
-      setMediaError('the corridor could not reach your microphone.')
+      setMediaError('the castle could not reach your microphone.')
     }
   }
 
@@ -153,34 +152,33 @@ export default function Speak({ onBack }) {
 
   if (confirm) {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <blockquote className="revelation reveal">{confirm}</blockquote>
-        <div className="actions">
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <blockquote className="revelation revelation-animate">{confirm}</blockquote>
+        <div className="actions-row">
           <Button variant="ghost" onClick={() => setConfirm(null)}>
             speak again
           </Button>
         </div>
-      </Screen>
+      </Room>
     )
   }
 
   return (
-    <Screen
+    <Room
       glyph={d.glyph}
       title={d.title}
       subtitle="no name. no face. no trace."
       onBack={onBack}
     >
       <textarea
-        className="field area"
+        className="stone-input stone-textarea"
         value={text}
         maxLength={4000}
         rows={5}
-        placeholder="let it out…"
+        placeholder="let it out..."
         onChange={(e) => setText(e.target.value)}
       />
 
-      {/* attachments */}
       <input
         ref={photoInput}
         type="file"
@@ -197,16 +195,16 @@ export default function Speak({ onBack }) {
       />
 
       {!media && !attaching && (
-        <div className="attach-row">
-          <button type="button" className="attach-btn" onClick={() => photoInput.current?.click()}>
+        <div className="attach-bar">
+          <button type="button" className="attach-stone" onClick={() => photoInput.current?.click()}>
             📷 photo
           </button>
-          <button type="button" className="attach-btn" onClick={() => videoInput.current?.click()}>
+          <button type="button" className="attach-stone" onClick={() => videoInput.current?.click()}>
             🎬 video
           </button>
           <button
             type="button"
-            className={`attach-btn${recording ? ' rec' : ''}`}
+            className={`attach-stone${recording ? ' recording' : ''}`}
             onClick={toggleRecord}
           >
             {recording ? `⏺ ${seconds}s · stop` : '🎤 voice'}
@@ -215,63 +213,63 @@ export default function Speak({ onBack }) {
       )}
 
       {attaching && (
-        <p className="attaching">
-          <span className="btn-spinner" aria-hidden="true" /> drawing it into the dark…
+        <p className="attach-loading">
+          <span className="arcane-spinner" aria-hidden="true" /> drawing it into the dark...
         </p>
       )}
 
       {media && (
-        <div className="media-chip reveal">
+        <div className="media-preview-chip revelation-animate">
           <MediaPreview media={media} />
-          <span className="media-name">{media.kind}</span>
-          <button type="button" className="media-remove" onClick={clearMedia} aria-label="remove">
+          <span className="media-preview-label">{media.kind}</span>
+          <button type="button" className="media-preview-remove" onClick={clearMedia} aria-label="remove">
             ×
           </button>
         </div>
       )}
 
-      {mediaError && <p className="whisper error center" style={{ marginTop: '0.75rem' }}>{mediaError}</p>}
+      {mediaError && <p className="whisper error text-center mt-small">{mediaError}</p>}
 
-      <p className="field-hint">before it arrives — what does this carry?</p>
-      <div className="chips chips-3">
+      <p className="stone-hint">before it arrives — what does this carry?</p>
+      <div className="stone-chips stone-chips-3">
         {TYPES.map((t) => (
           <button
             key={t.key}
             type="button"
-            className={`chip${type === t.key ? ' active' : ''}`}
+            className={`stone-chip${type === t.key ? ' active' : ''}`}
             onClick={() => {
               haptic('light')
               setType(t.key)
             }}
           >
-            <span className="chip-glyph">{t.glyph}</span>
+            <span className="stone-chip-glyph">{t.glyph}</span>
             <span>{t.label}</span>
           </button>
         ))}
       </div>
 
-      <div className="actions">
+      <div className="actions-row">
         <Button
           onClick={send}
           loading={loading}
-          loadingText={media ? 'carrying it through…' : 'sending into the dark…'}
+          loadingText={media ? 'carrying it through...' : 'sending into the dark...'}
           disabled={(!text.trim() && !media) || !type || recording || attaching}
         >
           send into the dark
         </Button>
       </div>
-    </Screen>
+    </Room>
   )
 }
 
 function MediaPreview({ media }) {
   if (media.kind === 'photo') {
-    return <img className="media-thumb" src={media.previewUrl} alt="" />
+    return <img className="media-preview-thumb" src={media.previewUrl} alt="" />
   }
   if (media.kind === 'video') {
-    return <video className="media-thumb" src={media.previewUrl} muted playsInline />
+    return <video className="media-preview-thumb" src={media.previewUrl} muted playsInline />
   }
   return (
-    <audio className="media-audio" src={media.previewUrl} controls />
+    <audio className="media-preview-audio" src={media.previewUrl} controls />
   )
 }

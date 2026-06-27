@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
 
 import Button from '../components/Button.jsx'
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call, track } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { notify } from '../lib/telegram.js'
 
 const NUMERALS = ['I', 'II', 'III', 'IV']
 const CONFIRM =
-  'the ritual is complete.\n\nwhat you gave has been received and kept.\nthe corridor holds it in the dark —\na secret that has never wept.'
+  'the ritual is complete.\n\nwhat you gave has been received and kept.\nthe castle holds it in the dark —\na secret that has never wept.'
 
+// The Ritual Chamber — a four-question initiation
 export default function Ritual({ onBack }) {
   const d = DOOR.ritual
   const [questions, setQuestions] = useState(null)
@@ -43,7 +44,7 @@ export default function Ritual({ onBack }) {
       setDone(true)
       notify('success')
     } catch {
-      setAnswers(filled) // let them try the final submit again
+      setAnswers(filled)
     } finally {
       setLoading(false)
     }
@@ -51,54 +52,60 @@ export default function Ritual({ onBack }) {
 
   if (done) {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <blockquote className="revelation reveal">{CONFIRM}</blockquote>
-      </Screen>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <blockquote className="revelation revelation-animate">{CONFIRM}</blockquote>
+      </Room>
     )
   }
 
   if (!questions) {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <p className="whisper center">the rite gathers…</p>
-      </Screen>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <div className="castle-loading">
+          <span className="loading-sigil">🕯️</span>
+          <p className="loading-whisper">the rite gathers...</p>
+        </div>
+      </Room>
     )
   }
 
   const last = step === 3
   return (
-    <Screen
+    <Room
       glyph={d.glyph}
       title={d.title}
       subtitle="four questions. answer honestly."
       onBack={onBack}
     >
-      <div className="step-marks">
+      <div className="ritual-marks">
         {NUMERALS.map((n, i) => (
-          <span key={n} className={`step-mark${i === step ? ' on' : ''}${i < step ? ' past' : ''}`}>
+          <span
+            key={n}
+            className={`ritual-mark${i === step ? ' active' : ''}${i < step ? ' past' : ''}`}
+          >
             {n}
           </span>
         ))}
       </div>
 
-      <p className="prompt" key={step}>
+      <p className="whisper text-center" key={step} style={{ marginBottom: '1.5rem' }}>
         {questions[step]}
       </p>
 
       <textarea
-        className="field area"
+        className="stone-input stone-textarea"
         value={current}
         maxLength={2000}
         rows={4}
-        placeholder="speak…"
+        placeholder="speak..."
         onChange={(e) => setCurrent(e.target.value)}
       />
 
-      <div className="actions">
+      <div className="actions-row">
         <Button onClick={advance} loading={loading}>
           {last ? 'complete the rite' : 'continue'}
         </Button>
       </div>
-    </Screen>
+    </Room>
   )
 }

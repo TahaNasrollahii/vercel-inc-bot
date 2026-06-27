@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 
 import Button from '../components/Button.jsx'
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call, track } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { notify } from '../lib/telegram.js'
 
+// The Hourglass Chamber — mark a moment in time
 export default function Countdown({ onBack }) {
   const d = DOOR.countdown
   const [today, setToday] = useState(null)
@@ -42,15 +43,15 @@ export default function Countdown({ onBack }) {
   }
 
   return (
-    <Screen glyph={d.glyph} title={d.title} subtitle="mark a moment in time" onBack={onBack}>
-      <p className="prompt" style={{ fontSize: '1.05rem' }}>
+    <Room glyph={d.glyph} title={d.title} subtitle="mark a moment in time" onBack={onBack}>
+      <p className="whisper text-center" style={{ fontSize: '1rem', marginBottom: '1.5rem' }}>
         name a moment you are counting toward.
         <br />
         the dark will count the days — and return to you when it arrives.
       </p>
 
       <input
-        className="field fa"
+        className="stone-input fa"
         dir="auto"
         value={date}
         maxLength={120}
@@ -58,38 +59,40 @@ export default function Countdown({ onBack }) {
         onChange={(e) => setDate(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && reckon()}
       />
-      <p className="field-hint" style={{ marginBottom: 0 }}>
-        <span className="muted">the date first — Persian calendar, as year / month / day.</span>
+      <p className="stone-hint" style={{ marginBottom: 0 }}>
+        <span className="stone-hint-muted">the date first — Persian calendar, as year / month / day.</span>
         <br />
-        <span className="muted">then a name for the moment, if you wish.</span>
+        <span className="stone-hint-muted">then a name for the moment, if you wish.</span>
         <br />
         <br />
-        accepts:&nbsp; ۱۴۰۵/۱۰/۱۱ · 1405-10-11 · ۱۱ دی ۱۴۰۵
+        <span className="stone-hint-muted">
+          accepts:&nbsp; ۱۴۰۵/۱۰/۱۱ · 1405-10-11 · ۱۱ دی ۱۴۰۵
+        </span>
         {today && (
           <>
             <br />
-            <span className="muted">today is {today}</span>
+            <span className="stone-hint-muted">today is {today}</span>
           </>
         )}
       </p>
 
-      <div className="actions">
+      <div className="actions-row">
         <Button onClick={reckon} loading={loading} disabled={!date.trim()}>
           begin the count
         </Button>
       </div>
 
       {error && (
-        <p className="whisper center error" style={{ marginTop: '1.5rem' }}>
-          the date couldn’t be read.
+        <p className="whisper text-center" style={{ marginTop: '1.5rem', color: '#cf8275' }}>
+          the date couldn't be read.
         </p>
       )}
 
       {result && result.passed && (
-        <div className="count-result reveal">
-          <p className="count-label fa" dir="auto">{result.label}</p>
-          <p className="count-date">🗓️ {result.target_jalali}</p>
-          <p className="prompt" style={{ marginTop: '1rem' }}>
+        <div className="countdown-result revelation-animate">
+          <p className="countdown-label fa" dir="auto">{result.label}</p>
+          <p className="countdown-date">🗓️ {result.target_jalali}</p>
+          <p className="whisper text-center" style={{ marginTop: '1rem' }}>
             that moment has already passed.
             <br />
             it lives behind you now.
@@ -98,30 +101,30 @@ export default function Countdown({ onBack }) {
       )}
 
       {result && !result.passed && (
-        <div className="count-result reveal">
-          <p className="count-label fa" dir="auto">{result.label}</p>
-          <p className="count-date">🗓️ {result.target_jalali}</p>
-          <div className="count-grid">
+        <div className="countdown-result revelation-animate">
+          <p className="countdown-label fa" dir="auto">{result.label}</p>
+          <p className="countdown-date">🗓️ {result.target_jalali}</p>
+          <div className="countdown-grid">
             <Unit n={result.days} label="days" />
             <Unit n={result.hours} label="hours" />
             <Unit n={result.minutes} label="minutes" />
           </div>
-          <p className="muted center">
+          <p className="text-muted text-center">
             the dark is counting —
             <br />
             and will return to you on the day.
           </p>
         </div>
       )}
-    </Screen>
+    </Room>
   )
 }
 
 function Unit({ n, label }) {
   return (
-    <div className="count-unit">
-      <span className="count-num">{n}</span>
-      <span className="count-unit-label">{label}</span>
+    <div className="countdown-unit">
+      <span className="countdown-number">{n}</span>
+      <span className="countdown-unit-label">{label}</span>
     </div>
   )
 }

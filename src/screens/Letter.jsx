@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import Button from '../components/Button.jsx'
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call, track } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { notify } from '../lib/telegram.js'
@@ -9,6 +9,7 @@ import { notify } from '../lib/telegram.js'
 const CONFIRM =
   'the letter has been folded and kept.\n\nit will never reach them.\nbut it exists now — and that is something.'
 
+// The Letter Writing Desk — a letter you'll never send
 export default function Letter({ onBack }) {
   const d = DOOR.letter
   const [text, setText] = useState('')
@@ -32,32 +33,32 @@ export default function Letter({ onBack }) {
 
   if (sent) {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <blockquote className="revelation reveal">{CONFIRM}</blockquote>
-      </Screen>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <blockquote className="revelation revelation-animate">{CONFIRM}</blockquote>
+      </Room>
     )
   }
 
   return (
-    <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-      <p className="prompt">
+    <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+      <p className="whisper text-center" style={{ marginBottom: '1.5rem' }}>
         write a letter to someone
         <br />
         you will never send it to.
       </p>
       <textarea
-        className="field area tall"
+        className="stone-input stone-textarea stone-textarea-tall"
         value={text}
         maxLength={4000}
         rows={8}
-        placeholder="take your time…"
+        placeholder="take your time..."
         onChange={(e) => setText(e.target.value)}
       />
-      <div className="actions">
+      <div className="actions-row">
         <Button onClick={send} loading={loading} disabled={!text.trim()}>
           fold it away
         </Button>
       </div>
-    </Screen>
+    </Room>
   )
 }

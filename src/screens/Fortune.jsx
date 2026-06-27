@@ -1,11 +1,12 @@
 import { useState } from 'react'
 
 import Button from '../components/Button.jsx'
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call, track } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { notify } from '../lib/telegram.js'
 
+// The Oracle's Chamber — the dark reads your fortune
 export default function Fortune({ onBack }) {
   const d = DOOR.fortune
   const [fortune, setFortune] = useState(null)
@@ -26,18 +27,18 @@ export default function Fortune({ onBack }) {
   }
 
   return (
-    <Screen glyph={d.glyph} title={d.title} subtitle={d.sub} onBack={onBack}>
+    <Room glyph={d.glyph} title={d.title} subtitle={d.sub} onBack={onBack}>
       {fortune && (
         <>
           <p className="revelation-label">the dark has read you</p>
-          <blockquote className="revelation reveal">{fortune}</blockquote>
+          <blockquote className="revelation revelation-animate">{fortune}</blockquote>
         </>
       )}
-      <div className="actions">
+      <div className="actions-row">
         <Button onClick={read} loading={loading}>
           {fortune ? 'read again' : 'read me'}
         </Button>
       </div>
-    </Screen>
+    </Room>
   )
 }

@@ -1,57 +1,104 @@
 /* ============================================================
-   the corridor — design system
-   Dark, candlelit, gothic-modern. Serif for voice, sans for UI.
+   THE CASTLE — Complete Spatial Design System
+   
+   Every pixel is architecture. Every motion is physics.
+   This is not a stylesheet. This is a blueprint for a living castle.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600&display=swap');
 
+/* ============================================================
+   CASTLE FOUNDATIONS — The Stone Palette
+   ============================================================ */
 :root {
-  /* palette - deeper voids and richer embers */
-  --bg: #030305;
-  --bg-grad-top: #08080c;
-  --surface: rgba(16, 16, 23, 0.65);
-  --surface-2: rgba(20, 20, 29, 0.85);
-  --ink: #e3e0e5;
-  --ink-dim: #9995a1;
-  --ink-faint: #5f5b68;
+  /* The void — deepest castle stone */
+  --void: #020203;
+  --void-deep: #010101;
+  --stone-darkest: #08080c;
+  --stone-dark: #0e0e14;
+  --stone: #16161e;
+  --stone-mid: #1c1c26;
+  --stone-light: #252530;
+  --stone-surface: rgba(22, 22, 30, 0.85);
+  --stone-glass: rgba(22, 22, 30, 0.55);
+
+  /* The ember — candlelight and fire */
   --ember: #c54228;
+  --ember-hot: #e05535;
+  --ember-deep: #8b2a18;
   --ember-soft: #a8351f;
   --ember-glow: rgba(197, 66, 40, 0.45);
-  --bronze: #b08d57;
-  --bronze-glow: rgba(176, 141, 87, 0.25);
-  --line: rgba(255, 255, 255, 0.04);
-  --line-strong: rgba(255, 255, 255, 0.09);
-  --shadow-arcane: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --ember-aura: rgba(197, 66, 40, 0.15);
+  --ember-faint: rgba(197, 66, 40, 0.06);
 
-  /* type */
+  /* The bronze — ancient metal */
+  --bronze: #b08d57;
+  --bronze-light: #d4b07a;
+  --bronze-glow: rgba(176, 141, 87, 0.25);
+  --bronze-aura: rgba(176, 141, 87, 0.1);
+  --bronze-faint: rgba(176, 141, 87, 0.04);
+
+  /* The ink — text hierarchy */
+  --ink: #e3e0e5;
+  --ink-bright: #f0edf2;
+  --ink-dim: #9995a1;
+  --ink-faint: #5f5b68;
+  --ink-ghost: #3a3742;
+
+  /* The lines — stone seams and iron */
+  --line: rgba(255, 255, 255, 0.04);
+  --line-mid: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --line-iron: rgba(255, 255, 255, 0.18);
+
+  /* Shadows — depth illusion */
+  --shadow-drop: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-deep: 0 16px 48px rgba(0, 0, 0, 0.8);
+  --shadow-abyss: 0 24px 64px rgba(0, 0, 0, 0.9);
+  --shadow-ember: 0 0 40px var(--ember-glow);
+  --shadow-inset: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-carved: inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.3);
+
+  /* Type — carved lettering */
+  --font-inscription: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  --font-heading: 'Cinzel', Georgia, serif;
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --font-fa: 'Vazirmatn', var(--font-body);
 
-  /* metrics */
-  --radius: 16px;
-  --radius-sm: 12px;
+  /* Castle metrics */
+  --arch-radius: 24px;
+  --stone-radius: 16px;
+  --pebble-radius: 10px;
   --pad: 1.25rem;
 
-  /* safe areas (Telegram fullscreen) */
+  /* Safe areas */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Transition physics */
+  --ease-stone: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-heavy: cubic-bezier(0.7, 0, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-silk: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* {
+/* ============================================================
+   RESET & FOUNDATIONS
+   ============================================================ */
+*, *::before, *::after {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
-html,
-body,
-#root {
+html, body, #root {
   height: 100%;
   margin: 0;
+  overflow: hidden;
 }
 
 body {
-  background: var(--bg);
+  background: var(--void);
   color: var(--ink);
   font-family: var(--font-body);
   font-weight: 500;
@@ -65,7 +112,6 @@ body {
   font-family: var(--font-fa);
   direction: rtl;
 }
-/* font only — pair with dir="auto" so mixed Persian/English aligns correctly */
 .fa {
   font-family: var(--font-fa);
 }
@@ -76,568 +122,905 @@ button {
   border: none;
   background: none;
   cursor: pointer;
+  padding: 0;
 }
 
-/* ---- shared atmosphere (moved to Atmosphere component mostly) ---- */
+/* ============================================================
+   THE CASTLE SHELL — Root Container
+   ============================================================ */
+.castle {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+/* ============================================================
+   ATMOSPHERE — The Living Castle
+   ============================================================ */
 .atmosphere {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: var(--bg);
 }
 
-.void-bg {
+/* Stone walls — the void with subtle texture */
+.castle-void {
   position: absolute;
   inset: 0;
-  background: radial-gradient(130% 80% at 50% 0%, var(--bg-grad-top) 0%, var(--bg) 60%);
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -10%, var(--stone-dark) 0%, var(--void) 50%),
+    radial-gradient(ellipse 80% 40% at 50% 110%, rgba(30, 20, 15, 0.3) 0%, transparent 60%),
+    var(--void-deep);
 }
 
-.ambient-glow {
+/* Stone texture overlay */
+.stone-texture {
   position: absolute;
-  top: 8%;
+  inset: 0;
+  opacity: 0.03;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(255,255,255,0.01) 3px, rgba(255,255,255,0.01) 6px);
+}
+
+/* Ambient ember glow — the castle's heartbeat */
+.ember-pulse {
+  position: absolute;
+  top: 5%;
   left: 50%;
   transform: translateX(-50%);
-  width: 380px;
-  height: 380px;
+  width: 400px;
+  height: 400px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--ember-glow) 0%, transparent 68%);
-  filter: blur(24px);
-  animation: breathe-glow 6.5s ease-in-out infinite;
+  background: radial-gradient(circle, var(--ember-glow) 0%, transparent 65%);
+  filter: blur(30px);
+  animation: castle-breathe 8s ease-in-out infinite;
 }
 
-@keyframes breathe-glow {
-  0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
-  50% { opacity: 0.6; transform: translateX(-50%) scale(1.15); }
+@keyframes castle-breathe {
+  0%, 100% { opacity: 0.2; transform: translateX(-50%) scale(1); }
+  30% { opacity: 0.45; transform: translateX(-50%) scale(1.08); }
+  60% { opacity: 0.25; transform: translateX(-50%) scale(0.95); }
 }
 
-/* CSS Fog */
-.fog {
+/* Secondary glow — lower, cooler */
+.ember-secondary {
+  position: absolute;
+  bottom: 15%;
+  left: 30%;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(176, 141, 87, 0.12) 0%, transparent 60%);
+  filter: blur(25px);
+  animation: castle-breathe 11s ease-in-out infinite reverse;
+}
+
+/* Fog layers — the castle breathes */
+.fog-layer {
   position: absolute;
   inset: -50%;
-  background-image: 
-    radial-gradient(ellipse at center, rgba(255,255,255,0.015) 0%, transparent 60%),
-    radial-gradient(ellipse at bottom, rgba(255,255,255,0.01) 0%, transparent 50%);
-  background-size: 150% 150%;
-  filter: blur(12px);
-  animation: drift 40s linear infinite;
-  opacity: 0.6;
+  filter: blur(20px);
+  opacity: 0;
 }
+
+.fog-1 {
+  background:
+    radial-gradient(ellipse 200% 100% at 30% 50%, rgba(255,255,255,0.012) 0%, transparent 50%),
+    radial-gradient(ellipse 150% 80% at 70% 60%, rgba(255,255,255,0.008) 0%, transparent 40%);
+  animation: fog-drift-1 50s linear infinite;
+  opacity: 0.7;
+}
+
 .fog-2 {
-  background-position: 50% 50%;
-  animation: drift-reverse 35s linear infinite;
-  opacity: 0.4;
+  background:
+    radial-gradient(ellipse 180% 120% at 60% 40%, rgba(255,255,255,0.01) 0%, transparent 45%),
+    radial-gradient(ellipse 120% 90% at 25% 70%, rgba(197, 66, 40, 0.008) 0%, transparent 35%);
+  animation: fog-drift-2 42s linear infinite;
+  opacity: 0.5;
 }
 
-@keyframes drift {
-  from { transform: translate(0, 0) rotate(0deg); }
-  to { transform: translate(5%, -2%) rotate(2deg); }
-}
-@keyframes drift-reverse {
-  from { transform: translate(0, 0) rotate(0deg); }
-  to { transform: translate(-3%, 3%) rotate(-1deg); }
+.fog-3 {
+  background:
+    radial-gradient(ellipse 160% 100% at 50% 80%, rgba(255,255,255,0.008) 0%, transparent 40%);
+  animation: fog-drift-3 35s linear infinite;
+  opacity: 0.3;
 }
 
-/* Embers/Dust */
+@keyframes fog-drift-1 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(4%, -2%) rotate(1.5deg); }
+}
+@keyframes fog-drift-2 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(-3%, 2%) rotate(-1deg); }
+}
+@keyframes fog-drift-3 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(2%, -1%) rotate(0.5deg); }
+}
+
+/* Ember particles — sparks rising from the castle depths */
 .particles {
   position: absolute;
   inset: 0;
 }
+
 .particle {
   position: absolute;
   width: 2px;
   height: 2px;
   background: var(--ember);
   border-radius: 50%;
-  box-shadow: 0 0 6px var(--ember-glow);
+  box-shadow: 0 0 6px var(--ember-glow), 0 0 12px rgba(197, 66, 40, 0.2);
   opacity: 0;
-}
-/* A few random keyframes for particles (just CSS magic) */
-@keyframes float-up {
-  0% { transform: translateY(100vh) translateX(0); opacity: 0; }
-  20% { opacity: 0.8; }
-  80% { opacity: 0.4; }
-  100% { transform: translateY(-20vh) translateX(20px); opacity: 0; }
+  will-change: transform, opacity;
 }
 
-.p-1 { left: 10%; animation: float-up 12s infinite linear; animation-delay: 0s; }
-.p-2 { left: 30%; animation: float-up 15s infinite linear; animation-delay: 2s; }
-.p-3 { left: 50%; animation: float-up 11s infinite linear; animation-delay: 4s; }
-.p-4 { left: 70%; animation: float-up 14s infinite linear; animation-delay: 1s; }
-.p-5 { left: 90%; animation: float-up 16s infinite linear; animation-delay: 5s; }
-.p-6 { left: 20%; animation: float-up 13s infinite linear; animation-delay: 7s; }
-.p-7 { left: 40%; animation: float-up 10s infinite linear; animation-delay: 3s; }
-.p-8 { left: 60%; animation: float-up 17s infinite linear; animation-delay: 6s; }
-.p-9 { left: 80%; animation: float-up 11s infinite linear; animation-delay: 8s; }
-.p-10 { left: 15%; animation: float-up 14s infinite linear; animation-delay: 9s; }
-.p-11 { left: 85%; animation: float-up 12s infinite linear; animation-delay: 10s; }
-.p-12 { left: 55%; animation: float-up 15s infinite linear; animation-delay: 11s; }
-
-.title {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 2.8rem;
-  letter-spacing: -0.01em;
-  margin: 0;
-  text-shadow: 0 4px 24px rgba(0,0,0,0.8), 0 0 20px var(--ember-glow);
+@keyframes ember-rise {
+  0% {
+    transform: translateY(100vh) translateX(0) scale(0.5);
+    opacity: 0;
+  }
+  10% { opacity: 0.9; }
+  50% { opacity: 0.6; }
+  90% { opacity: 0.15; }
+  100% {
+    transform: translateY(-15vh) translateX(var(--drift, 15px)) scale(0.2);
+    opacity: 0;
+  }
 }
 
-.whisper {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.15rem;
-  color: var(--ink-dim);
-  margin: 0;
+.p-1  { left: 8%;  --drift: 12px;  animation: ember-rise 14s infinite linear; animation-delay: 0s; }
+.p-2  { left: 22%; --drift: -8px;  animation: ember-rise 17s infinite linear; animation-delay: 2.5s; }
+.p-3  { left: 38%; --drift: 18px;  animation: ember-rise 12s infinite linear; animation-delay: 5s; }
+.p-4  { left: 52%; --drift: -15px; animation: ember-rise 16s infinite linear; animation-delay: 1.2s; }
+.p-5  { left: 67%; --drift: 10px;  animation: ember-rise 19s infinite linear; animation-delay: 7s; }
+.p-6  { left: 82%; --drift: -12px; animation: ember-rise 13s infinite linear; animation-delay: 3.8s; }
+.p-7  { left: 15%; --drift: 20px;  animation: ember-rise 15s infinite linear; animation-delay: 9s; }
+.p-8  { left: 45%; --drift: -6px;  animation: ember-rise 11s infinite linear; animation-delay: 4.2s; }
+.p-9  { left: 73%; --drift: 14px;  animation: ember-rise 18s infinite linear; animation-delay: 6.5s; }
+.p-10 { left: 28%; --drift: -18px; animation: ember-rise 14s infinite linear; animation-delay: 8.5s; }
+.p-11 { left: 58%; --drift: 8px;   animation: ember-rise 20s infinite linear; animation-delay: 10s; }
+.p-12 { left: 90%; --drift: -10px; animation: ember-rise 16s infinite linear; animation-delay: 11.5s; }
+.p-13 { left: 5%;  --drift: 16px;  animation: ember-rise 13s infinite linear; animation-delay: 13s; }
+.p-14 { left: 35%; --drift: -20px; animation: ember-rise 15s infinite linear; animation-delay: 2s; }
+.p-15 { left: 78%; --drift: 6px;   animation: ember-rise 17s infinite linear; animation-delay: 7.5s; }
+.p-16 { left: 48%; --drift: -14px; animation: ember-rise 12s infinite linear; animation-delay: 14s; }
+
+/* Candlelight flicker overlays */
+.candlelight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
-.whisper.error { color: #cf8275; text-shadow: 0 0 10px rgba(207, 130, 117, 0.2); }
-.reason {
-  display: inline-block;
-  margin-top: 0.45rem;
-  font-style: normal;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  color: var(--ink-faint);
+
+.candle-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(15px);
+  mix-blend-mode: screen;
+}
+
+.candle-glow-1 {
+  top: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(255, 180, 80, 0.15) 0%, transparent 70%);
+  animation: candle-flicker-1 3.2s ease-in-out infinite;
+}
+
+.candle-glow-2 {
+  top: 2%;
+  left: 48%;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(255, 200, 100, 0.1) 0%, transparent 60%);
+  animation: candle-flicker-2 2.8s ease-in-out infinite;
+}
+
+@keyframes candle-flicker-1 {
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+  25% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+  50% { opacity: 0.5; transform: translateX(-50%) scale(0.95); }
+  75% { opacity: 0.9; transform: translateX(-50%) scale(1.02); }
+}
+
+@keyframes candle-flicker-2 {
+  0%, 100% { opacity: 0.5; }
+  33% { opacity: 0.9; }
+  66% { opacity: 0.4; }
+}
+
+/* Vignette — the castle's darkness presses in from the edges */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 65% at 50% 50%, transparent 40%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
 }
 
 /* ============================================================
-   boot / fallback (Boot component)
+   ROOM SYSTEM — Screen Architecture
    ============================================================ */
-.corridor {
-  position: relative;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 0.8rem;
-  padding: 2rem;
-  /* background removed, Atmosphere handles it */
-  overflow: hidden;
-  z-index: 1;
-}
 
-/* ============================================================
-   app shell + screen transition
-   ============================================================ */
-.app {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
-
-.scene-container {
+/* The viewport that holds rooms */
+.room-viewport {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  transform-style: preserve-3d;
 }
 
-.view {
+/* A room — every screen is a room in the castle */
+.room {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  animation: scene-enter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   z-index: 2;
+  transform-origin: center center;
+  will-change: transform, opacity, filter;
+  -webkit-overflow-scrolling: touch;
 }
 
-.view-exit {
-  animation: scene-exit 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+/* Entering a room — approaching through the castle */
+.room-enter {
+  animation: room-enter 0.65s var(--ease-stone) both;
+}
+
+@keyframes room-enter {
+  0% {
+    opacity: 0;
+    transform: translateZ(-120px) scale(0.88);
+    filter: blur(12px) brightness(0.3);
+  }
+  40% {
+    opacity: 0.6;
+    filter: blur(4px) brightness(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: translateZ(0) scale(1);
+    filter: blur(0) brightness(1);
+  }
+}
+
+/* Exiting a room — leaving it behind in the dark */
+.room-exit {
+  animation: room-exit 0.55s var(--ease-stone) both;
   z-index: 1;
   pointer-events: none;
 }
 
-@keyframes scene-enter {
-  from { opacity: 0; transform: scale(1.05); filter: blur(8px) brightness(0.5); }
-  to { opacity: 1; transform: scale(1); filter: blur(0) brightness(1); }
-}
-
-@keyframes scene-exit {
-  from { opacity: 1; transform: scale(1); filter: blur(0) brightness(1); }
-  to { opacity: 0; transform: scale(0.92); filter: blur(12px) brightness(0.2); }
+@keyframes room-exit {
+  0% {
+    opacity: 1;
+    transform: translateZ(0) scale(1);
+    filter: blur(0) brightness(1);
+  }
+  60% {
+    opacity: 0.3;
+    filter: blur(8px) brightness(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translateZ(-80px) scale(0.92);
+    filter: blur(16px) brightness(0.15);
+  }
 }
 
 /* ============================================================
-   home / the corridor
+   THE ENTRANCE HALL — Home Screen
    ============================================================ */
-.home {
+.entrance-hall {
   position: relative;
+  min-height: 100%;
   padding:
-    calc(var(--safe-top) + 2.75rem)
+    calc(var(--safe-top) + 2rem)
     var(--pad)
-    calc(var(--safe-bottom) + 2.25rem);
+    calc(var(--safe-bottom) + 3rem);
   z-index: 1;
 }
 
-.hero {
+/* Castle entrance hero — the first thing you see */
+.castle-gate {
   position: relative;
   text-align: center;
   margin-bottom: 2.5rem;
-  z-index: 1;
+  padding: 2rem 0;
 }
 
-.candle {
-  font-size: 1.9rem;
-  filter: drop-shadow(0 0 14px var(--ember-glow));
-  animation: flicker 3.4s ease-in-out infinite;
+/* The great candle — centerpiece */
+.great-candle {
+  font-size: 2.4rem;
+  filter: drop-shadow(0 0 20px var(--ember-glow)) drop-shadow(0 0 40px rgba(197,66,40,0.2));
+  animation: great-flicker 4s ease-in-out infinite;
+  display: inline-block;
 }
 
-@keyframes flicker {
-  0%, 100% { opacity: 0.92; }
-  45% { opacity: 1; }
-  55% { opacity: 0.7; }
-  70% { opacity: 0.95; }
+@keyframes great-flicker {
+  0%, 100% { opacity: 0.85; transform: scale(1) rotate(0deg); }
+  15% { opacity: 1; transform: scale(1.03) rotate(0.5deg); }
+  30% { opacity: 0.75; transform: scale(0.98) rotate(-0.3deg); }
+  50% { opacity: 0.95; transform: scale(1.01) rotate(0.2deg); }
+  70% { opacity: 0.7; transform: scale(0.97) rotate(-0.5deg); }
+  85% { opacity: 1; transform: scale(1.02) rotate(0.3deg); }
 }
 
-.hero .title {
-  margin: 0.4rem 0 0.55rem;
-}
-.hero .whisper {
-  font-size: 1rem;
+.castle-title {
+  font-family: var(--font-inscription);
+  font-weight: 700;
+  font-size: 2.4rem;
+  letter-spacing: 0.08em;
+  margin: 0.5rem 0 0.4rem;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow:
+    0 0 30px var(--ember-glow),
+    0 4px 20px rgba(0,0,0,0.8),
+    0 0 60px rgba(197,66,40,0.15);
 }
 
-/* doors */
-.doors {
+.castle-subtitle {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink-dim);
+  margin: 0;
+  letter-spacing: 0.03em;
+}
+
+/* Decorative arch line above corridor */
+.arch-line {
+  width: 80%;
+  max-width: 280px;
+  height: 1px;
+  margin: 0 auto 2rem;
+  background: linear-gradient(90deg, transparent, var(--bronze-glow), var(--line-mid), var(--bronze-glow), transparent);
+  position: relative;
+}
+.arch-line::before {
+  content: '◆';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.5rem;
+  color: var(--bronze);
+  text-shadow: 0 0 8px var(--bronze-glow);
+}
+
+/* ============================================================
+   CORRIDOR — The Arched Doorway System
+   ============================================================ */
+.corridor {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 2rem;
   max-width: 460px;
   margin: 0 auto;
 }
 
-/* Cinematic Focus Pull */
-@media (hover: hover) {
-  .doors:has(.door:hover) .door:not(:hover) {
-    filter: blur(3px) brightness(0.5);
-    transform: scale(0.96);
-    transition-duration: 0.5s;
-  }
-}
-
-.section-label {
-
-  font-size: 0.68rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  margin: 0 0 0.7rem 0.35rem;
-}
-
-.door-section {
+.corridor-section {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.65rem;
 }
 
-.door {
+/* Section labels — carved into the wall */
+.wall-inscription {
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-ghost);
+  margin: 0 0 0.3rem 0.5rem;
+  position: relative;
+  padding-left: 1rem;
+}
+.wall-inscription::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 6px;
+  height: 1px;
+  background: var(--bronze);
+  opacity: 0.4;
+}
+
+/* ============================================================
+   ARCHED DOORWAY — The Navigation Element
+   ============================================================ */
+.archway {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.95rem;
+  gap: 1rem;
   width: 100%;
-  padding: 1rem 1.1rem;
+  padding: 1.1rem 1.2rem;
   text-align: left;
-  background: linear-gradient(180deg, rgba(20,20,25,0.7) 0%, rgba(10,10,15,0.9) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  border-radius: var(--radius);
-  box-shadow: 
-    inset 0 1px 1px rgba(255,255,255,0.05),
-    0 8px 24px rgba(0,0,0,0.6);
-  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  cursor: pointer;
+
+  /* Stone surface */
+  background:
+    linear-gradient(180deg, rgba(20,20,28,0.75) 0%, rgba(10,10,16,0.92) 100%);
+  border: 1px solid rgba(255,255,255,0.03);
+  border-radius: var(--arch-radius);
+
+  /* Depth and weight */
+  box-shadow:
+    var(--shadow-carved),
+    0 8px 24px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(0,0,0,0.3);
+
+  /* Physics */
+  transition: all 0.4s var(--ease-stone);
   transform-style: preserve-3d;
-  perspective: 1000px;
-  animation: stone-reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  perspective: 800px;
   backdrop-filter: blur(8px);
+
+  /* Entry animation */
+  animation: archway-materialize 0.7s var(--ease-stone) both;
 }
 
-.door::before {
+/* Arched top — the defining gothic element */
+.archway::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 10%;
+  right: 10%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(176,141,87,0.15), transparent);
+  border-radius: 0 0 50% 50%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* Inner glow on hover */
+.archway::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: 0 0 0 1px transparent;
-  transition: box-shadow 0.35s ease;
+  box-shadow: inset 0 0 20px rgba(176,141,87,0.05);
+  opacity: 0;
+  transition: opacity 0.4s ease;
   pointer-events: none;
 }
 
-@keyframes stone-reveal {
-  from { 
-    opacity: 0; 
-    transform: rotateX(-15deg) translateY(20px) scale(0.95); 
-    filter: brightness(0.5);
+@keyframes archway-materialize {
+  0% {
+    opacity: 0;
+    transform: rotateX(-12deg) translateY(24px) scale(0.94);
+    filter: brightness(0.4);
   }
-  to { 
-    opacity: 1; 
-    transform: rotateX(0deg) translateY(0) scale(1); 
+  60% {
+    filter: brightness(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg) translateY(0) scale(1);
     filter: brightness(1);
   }
 }
 
-.door:hover {
-  transform: translateY(-2px) scale(1.01);
-  background: linear-gradient(180deg, rgba(30,30,35,0.8) 0%, rgba(15,15,20,0.95) 100%);
-  box-shadow: 
-    inset 0 1px 1px rgba(255,255,255,0.08),
-    0 12px 32px rgba(0,0,0,0.8),
-    0 0 20px rgba(176, 141, 87, 0.1);
+/* Hover — the doorway beckons */
+.archway:hover {
+  transform: translateY(-3px) scale(1.01);
+  background:
+    linear-gradient(180deg, rgba(28,28,38,0.85) 0%, rgba(14,14,22,0.95) 100%);
+  box-shadow:
+    var(--shadow-carved),
+    0 12px 36px rgba(0,0,0,0.7),
+    0 0 30px rgba(176,141,87,0.08),
+    0 0 0 1px rgba(176,141,87,0.15);
+  border-color: rgba(176,141,87,0.12);
 }
-.door:hover::before {
-  box-shadow: 0 0 0 1px rgba(176, 141, 87, 0.3);
+.archway:hover::before { opacity: 1; }
+.archway:hover::after { opacity: 1; }
+
+/* Active — pressing into the stone */
+.archway:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: 0.1s;
+  box-shadow:
+    var(--shadow-carved),
+    0 4px 12px rgba(0,0,0,0.6),
+    inset 0 2px 6px rgba(0,0,0,0.4);
 }
 
-.door:active {
-  transform: translateY(1px) scale(0.98);
-  box-shadow: 
-    inset 0 2px 4px rgba(0,0,0,0.5),
-    0 4px 12px rgba(0,0,0,0.6);
+/* Focus for accessibility */
+.archway:focus-visible {
+  outline: 2px solid var(--bronze);
+  outline-offset: 2px;
 }
 
-.door-glyph {
+/* Archway glyph — the carved symbol */
+.archway-glyph {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  font-size: 1.35rem;
-  background: radial-gradient(circle at 50% 30%, rgba(197, 66, 40, 0.25), transparent 70%);
-  border: 1px solid rgba(197, 66, 40, 0.3);
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 15px rgba(197, 66, 40, 0.2);
-  text-shadow: 0 0 8px rgba(255,255,255,0.5);
-  transition: all 0.35s ease;
-}
-.door:hover .door-glyph {
-  background: radial-gradient(circle at 50% 30%, rgba(197, 66, 40, 0.4), transparent 70%);
-  border-color: rgba(197, 66, 40, 0.6);
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 20px rgba(197, 66, 40, 0.4);
-  transform: scale(1.05);
+  font-size: 1.4rem;
+  position: relative;
+
+  /* Ember-lit circle */
+  background:
+    radial-gradient(circle at 50% 35%, rgba(197,66,40,0.2) 0%, transparent 65%);
+  border: 1px solid rgba(197,66,40,0.25);
+  box-shadow:
+    inset 0 0 12px rgba(0,0,0,0.5),
+    0 0 16px rgba(197,66,40,0.15);
+  text-shadow: 0 0 10px rgba(255,255,255,0.4);
+  transition: all 0.4s ease;
 }
 
-.door-text {
+.archway:hover .archway-glyph {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(197,66,40,0.35) 0%, transparent 65%);
+  border-color: rgba(197,66,40,0.5);
+  box-shadow:
+    inset 0 0 12px rgba(0,0,0,0.5),
+    0 0 24px rgba(197,66,40,0.3);
+  transform: scale(1.08);
+}
+
+/* Archway text content */
+.archway-text {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.15rem;
   flex: 1 1 auto;
   min-width: 0;
 }
-.door-title {
-  font-family: var(--font-display);
-  font-size: 1.32rem;
+
+.archway-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.06em;
   color: var(--ink);
+  text-transform: lowercase;
 }
-.door-sub {
-  font-size: 0.82rem;
+
+.archway-sub {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.85rem;
   color: var(--ink-faint);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.door-chevron {
+
+/* Archway passage indicator */
+.archway-passage {
   flex: 0 0 auto;
-  font-size: 1.3rem;
-  color: var(--ink-faint);
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-.door:active .door-chevron {
-  color: var(--ember);
-  transform: translateX(2px);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--ink-ghost);
+  transition: all 0.3s ease;
 }
 
-.home-foot {
-  text-align: center;
-  margin-top: 3.5rem;
-  font-family: var(--font-display);
-  font-size: 0.9rem;
-  letter-spacing: 0.05em;
-  color: rgba(255,255,255,0.15);
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
-  font-style: italic;
+.archway-passage-line {
+  width: 16px;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.3s ease;
 }
-.name { color: rgba(176, 141, 87, 0.6); }
-.keeper { color: var(--ember-soft); }
+
+.archway-passage-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.archway:hover .archway-passage {
+  color: var(--bronze);
+}
+.archway:hover .archway-passage-line {
+  width: 24px;
+}
+.archway:hover .archway-passage-dot {
+  opacity: 1;
+}
+
+.archway:active .archway-passage {
+  color: var(--ember);
+  transform: translateX(3px);
+}
+
+/* Badge — unread indicator as a burning ember */
+.ember-badge {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f6e9e5;
+  background: var(--ember);
+  border-radius: 999px;
+  box-shadow:
+    0 0 12px var(--ember-glow),
+    0 0 24px rgba(197,66,40,0.2);
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 12px var(--ember-glow); }
+  50% { box-shadow: 0 0 20px var(--ember-glow), 0 0 30px rgba(197,66,40,0.3); }
+}
+
+/* Entrance hall footer — carved inscription */
+.entrance-inscription {
+  text-align: center;
+  margin-top: 3rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.1);
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+}
 
 /* ============================================================
-   screen (feature pages)
+   ROOM INTERIOR — Screen System
    ============================================================ */
-.screen {
+.room-interior {
   position: relative;
   min-height: 100%;
   padding:
-    calc(var(--safe-top) + 2rem)
+    calc(var(--safe-top) + 1.5rem)
     var(--pad)
     calc(var(--safe-bottom) + 2rem);
   max-width: 540px;
   margin: 0 auto;
 }
 
-.screen-head {
+/* Room header — the title carved above the doorway */
+.room-header {
   position: relative;
   text-align: center;
-  margin-bottom: 1.75rem;
+  margin-bottom: 2rem;
+  padding-top: 0.5rem;
 }
 
-.back {
+/* Back button — the threshold to return */
+.threshold {
   position: absolute;
-  top: -0.25rem;
+  top: 0;
   left: 0;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  padding: 0;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   line-height: 1;
   color: var(--ink-dim);
   border: 1px solid var(--line);
-  background: var(--surface);
-  transition: border-color 0.2s ease, color 0.2s ease;
+  background: var(--stone-glass);
+  backdrop-filter: blur(6px);
+  transition: all 0.3s ease;
 }
-.back:active {
+.threshold:hover {
+  color: var(--ink);
+  border-color: var(--line-mid);
+  background: var(--stone-surface);
+}
+.threshold:active {
   color: var(--ember);
   border-color: var(--line-strong);
+  transform: scale(0.95);
 }
 
-.screen-glyph {
-  font-size: 1.7rem;
-  filter: drop-shadow(0 0 12px var(--ember-glow));
+/* Room icon — the room's sigil */
+.room-sigil {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 16px var(--ember-glow));
+  display: inline-block;
+  animation: sigil-glow 5s ease-in-out infinite;
 }
-.screen-title {
-  font-family: var(--font-display);
+
+@keyframes sigil-glow {
+  0%, 100% { filter: drop-shadow(0 0 16px var(--ember-glow)); }
+  50% { filter: drop-shadow(0 0 24px var(--ember-glow)) drop-shadow(0 0 40px rgba(197,66,40,0.2)); }
+}
+
+/* Room name — carved title */
+.room-name {
+  font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 2.05rem;
-  letter-spacing: 0.02em;
-  margin: 0.35rem 0 0.3rem;
+  font-size: 1.8rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  margin: 0.4rem 0 0.3rem;
+  color: var(--ink);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
 }
-.screen-sub {
+
+/* Room whisper — subtitle */
+.room-whisper {
   font-family: var(--font-display);
   font-style: italic;
   font-size: 1rem;
   color: var(--ink-dim);
   margin: 0;
+  letter-spacing: 0.02em;
 }
 
-.screen-body {
+/* Room body — the content area */
+.room-body {
   position: relative;
 }
 
 /* ============================================================
-   shared screen building blocks
+   STONE ELEMENTS — Buttons, Inputs, Cards
    ============================================================ */
-.prompt {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  line-height: 1.5;
-  color: var(--ink-dim);
-  text-align: center;
-  margin: 0 0 1.5rem;
-}
 
-.actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 1.75rem;
-}
-
-.btn {
+/* Carved stone button */
+.stone-btn {
   position: relative;
   overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   min-width: 11rem;
-  padding: 0.9rem 1.8rem;
-  font-family: var(--font-display);
-  font-size: 1.15rem;
+  padding: 0.95rem 2rem;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
-  border-radius: 4px;
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
-  text-decoration: none;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  border-radius: 6px;
+  cursor: pointer;
+
+  /* Stone surface */
+  background:
+    linear-gradient(180deg, var(--stone-mid) 0%, var(--stone-dark) 100%);
+  border: 1px solid var(--line-mid);
+  box-shadow:
+    var(--shadow-carved),
+    0 6px 20px rgba(0,0,0,0.5);
+
+  /* Physics */
+  transition: all 0.3s var(--ease-stone);
+  transform-style: preserve-3d;
 }
 
-.btn::after {
+/* Light sweep effect */
+.stone-btn::after {
   content: '';
   position: absolute;
-  top: 0; left: -100%; width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-  transform: skewX(-25deg);
-  transition: none;
+  top: 0;
+  left: -100%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  transform: skewX(-20deg);
 }
 
-.btn:hover::after {
-  left: 200%;
-  transition: left 0.7s ease-in-out;
+.stone-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    var(--shadow-carved),
+    0 10px 28px rgba(0,0,0,0.6),
+    0 0 15px rgba(176,141,87,0.06);
+  border-color: var(--line-strong);
+  background:
+    linear-gradient(180deg, var(--stone-light) 0%, var(--stone) 100%);
+}
+.stone-btn:hover::after {
+  left: 150%;
+  transition: left 0.6s ease-in-out;
 }
 
-.btn:active {
-  transform: scale(0.96);
+.stone-btn:active {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 0.08s;
+  box-shadow:
+    var(--shadow-carved),
+    0 3px 8px rgba(0,0,0,0.6),
+    inset 0 2px 6px rgba(0,0,0,0.4);
 }
-.btn:disabled {
-  opacity: 0.4;
+
+.stone-btn:disabled {
+  opacity: 0.35;
   pointer-events: none;
-  filter: grayscale(1);
+  filter: grayscale(0.8);
 }
 
-.btn-primary {
+/* Ember variant — the burning button */
+.stone-btn-ember {
   color: #f6e9e5;
-  background: linear-gradient(180deg, var(--ember) 0%, rgba(130, 20, 20, 0.9) 100%);
-  box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 6px 20px var(--ember-glow);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  border: 1px solid rgba(0,0,0,0.8);
-}
-.btn-primary:hover {
-  background: linear-gradient(180deg, #d85032 0%, #a81c1c 100%);
-  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 8px 30px rgba(197, 66, 40, 0.6);
-}
-.btn-primary:active {
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 3px 10px var(--ember-glow);
+  background:
+    linear-gradient(180deg, var(--ember) 0%, var(--ember-deep) 100%);
+  border-color: rgba(0,0,0,0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    0 6px 24px var(--ember-glow);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 
-.btn-ghost {
+.stone-btn-ember:hover {
+  background:
+    linear-gradient(180deg, var(--ember-hot) 0%, var(--ember) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    0 10px 32px rgba(197,66,40,0.5),
+    0 0 20px rgba(197,66,40,0.15);
+  border-color: rgba(0,0,0,0.4);
+}
+
+.stone-btn-ember:active {
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,0.5),
+    0 3px 10px var(--ember-glow);
+}
+
+/* Ghost variant — ethereal */
+.stone-btn-ghost {
   color: var(--ink-dim);
-  background: rgba(20, 20, 25, 0.6);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: var(--stone-glass);
+  border-color: var(--line);
   backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
-.btn-ghost:hover {
+.stone-btn-ghost:hover {
   color: var(--ink);
-  background: rgba(30, 30, 35, 0.8);
-  border-color: rgba(255,255,255,0.1);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  background: var(--stone-surface);
+  border-color: var(--line-mid);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 
-.btn.is-loading {
-  animation: btn-breathe 1.8s ease-in-out infinite;
+/* Loading state — arcane pulsing */
+.stone-btn-loading {
+  animation: arcane-pulse 1.8s ease-in-out infinite;
 }
-@keyframes btn-breathe {
-  0%, 100% { box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 4px 15px var(--ember-glow); filter: brightness(1); }
-  50% { box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 4px 35px var(--ember-glow); filter: brightness(1.2); }
-}
-.btn-loading {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
+@keyframes arcane-pulse {
+  0%, 100% {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 15px var(--ember-glow);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 35px var(--ember-glow);
+    filter: brightness(1.15);
+  }
 }
 
-/* an arcane ring spinner */
-.btn-spinner {
+/* Loading spinner — arcane ring */
+.arcane-spinner {
   display: inline-block;
   width: 1.1em;
   height: 1.1em;
   border-radius: 50%;
   border: 2px solid transparent;
   border-top-color: #f6e9e5;
-  border-left-color: rgba(246, 233, 229, 0.3);
-  animation: arcane-spin 1s cubic-bezier(0.6, 0.1, 0.4, 0.9) infinite;
+  border-left-color: rgba(246,233,229,0.3);
+  animation: arcane-spin 1s cubic-bezier(0.6,0.1,0.4,0.9) infinite;
 }
 @keyframes arcane-spin {
   0% { transform: rotate(0deg) scale(0.8); }
@@ -645,181 +1028,247 @@ button {
   100% { transform: rotate(360deg) scale(0.8); }
 }
 
-.attaching {
-  display: flex;
+.stone-btn-loading-text {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  margin-top: 0.9rem;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.02rem;
-  color: var(--ink-dim);
-}
-.attaching .btn-spinner {
-  border-color: rgba(166, 162, 173, 0.3);
-  border-top-color: var(--ink-dim);
+  gap: 0.6rem;
 }
 
-.field {
+/* ============================================================
+   STONE INPUT — Text Fields
+   ============================================================ */
+.stone-input {
   width: 100%;
-  padding: 1.1rem 1.2rem;
+  padding: 1.15rem 1.3rem;
   font-family: var(--font-body);
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--ink);
-  background: rgba(10, 10, 15, 0.8);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 4px;
+  background: rgba(8,8,12,0.85);
+  border: 1px solid var(--line);
+  border-radius: var(--pebble-radius);
   outline: none;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
+
+  /* Carved-in feel */
+  box-shadow:
+    inset 0 3px 8px rgba(0,0,0,0.5),
+    inset 0 1px 2px rgba(0,0,0,0.3);
+
   transition: all 0.3s ease;
 }
-.field:focus {
+
+.stone-input:focus {
   border-color: var(--ember-soft);
-  background: rgba(15, 15, 20, 0.9);
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5), 0 0 0 2px rgba(197, 66, 40, 0.3);
+  background: rgba(12,12,18,0.9);
+  box-shadow:
+    inset 0 3px 8px rgba(0,0,0,0.5),
+    0 0 0 2px rgba(197,66,40,0.2),
+    0 0 20px rgba(197,66,40,0.08);
 }
 
-/* the revealed "voice" of the corridor — a quote, a fortune, a reflection */
-.revelation {
-  position: relative;
-  margin: 1.75rem 0 0;
-  padding: 1.5rem 1.4rem;
+.stone-input::placeholder {
+  color: var(--ink-ghost);
+  font-style: italic;
+}
+
+/* Textarea variant */
+.stone-textarea {
+  min-height: 8.5rem;
+  resize: none;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.stone-textarea-tall {
+  min-height: 12rem;
+}
+
+/* Input hint text */
+.stone-hint {
+  margin: 1.2rem 0 0.6rem;
+  text-align: center;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.4rem;
-  line-height: 1.5;
+  font-size: 1rem;
+  color: var(--ink-dim);
+}
+
+.stone-hint-muted {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  font-style: normal;
+  font-family: var(--font-body);
+}
+
+/* ============================================================
+   THE REVELATION — Quote/Response Display
+   ============================================================ */
+.revelation {
+  position: relative;
+  margin: 2rem 0 0;
+  padding: 1.8rem 1.5rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.35rem;
+  line-height: 1.55;
   color: var(--ink);
   text-align: center;
   white-space: pre-line;
-  background: radial-gradient(120% 100% at 50% 0%, rgba(192, 86, 63, 0.07), transparent 70%);
+
+  /* Ethereal backdrop */
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(192,86,63,0.06) 0%, transparent 70%);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
+
 .revelation-label {
-  margin: 1.75rem 0 -0.5rem;
+  margin: 2rem 0 -0.5rem;
   text-align: center;
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-ghost);
 }
 
-.reveal {
-  animation: reveal 0.7s ease both;
-}
-@keyframes reveal {
-  from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+.revelation-animate {
+  animation: revelation-appear 0.8s var(--ease-stone) both;
 }
 
-/* mood chips */
-.chips {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.7rem;
-}
-
-@media (hover: hover) {
-  .chips:has(.chip:hover) .chip:not(:hover) {
-    filter: blur(2px) brightness(0.6);
-    transform: scale(0.97);
-    transition-duration: 0.35s;
+@keyframes revelation-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
-.chip {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.9rem 1rem;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  color: var(--ink-dim);
-  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+/* ============================================================
+   MOOD CHIPS — Selection Stones
+   ============================================================ */
+.stone-chips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
 }
-.chip:active {
-  transform: scale(0.97);
-}
-.chip.active {
-  border-color: var(--ember-soft);
-  color: var(--ink);
-  box-shadow: 0 0 0 1px var(--ember-glow), 0 6px 22px var(--ember-glow);
-}
-.chip-glyph {
-  font-size: 1.2rem;
-}
-.chips-3 {
+
+.stone-chips-3 {
   grid-template-columns: repeat(3, 1fr);
 }
-.chips-3 .chip {
-  flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.92rem;
-  text-align: center;
-}
 
-/* ---- whisper ---- */
-.area {
-  min-height: 8.5rem;
-  resize: none;
-  line-height: 1.5;
-  font-weight: 500;
-}
-.field-hint {
-  margin: 1.4rem 0 0.7rem;
-  text-align: center;
+.stone-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.95rem 1rem;
   font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.02rem;
+  font-size: 1.15rem;
   color: var(--ink-dim);
+  cursor: pointer;
+
+  background:
+    linear-gradient(180deg, var(--stone-glass) 0%, rgba(14,14,20,0.8) 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--stone-radius);
+
+  transition: all 0.3s var(--ease-stone);
+  box-shadow: var(--shadow-carved), 0 4px 12px rgba(0,0,0,0.3);
 }
 
-/* ---- attachments ---- */
-.attach-row {
+.stone-chip:active {
+  transform: scale(0.97);
+  transition-duration: 0.08s;
+}
+
+.stone-chip.active {
+  color: var(--ink);
+  border-color: var(--ember-soft);
+  box-shadow:
+    0 0 0 1px var(--ember-glow),
+    0 8px 24px var(--ember-glow),
+    var(--shadow-carved);
+  background:
+    linear-gradient(180deg, rgba(197,66,40,0.12) 0%, rgba(197,66,40,0.04) 100%);
+}
+
+.stone-chip-glyph {
+  font-size: 1.15rem;
+}
+
+.stone-chips-3 .stone-chip {
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+/* Focus pull — cinematic blur on hover */
+@media (hover: hover) {
+  .stone-chips:has(.stone-chip:hover) .stone-chip:not(:hover) {
+    filter: blur(2px) brightness(0.55);
+    transform: scale(0.97);
+    transition-duration: 0.4s;
+  }
+  .corridor:has(.archway:hover) .archway:not(:hover) {
+    filter: blur(3px) brightness(0.5);
+    transform: scale(0.97);
+    transition-duration: 0.5s;
+  }
+}
+
+/* ============================================================
+   ATTACHMENTS — Media Elements
+   ============================================================ */
+.attach-bar {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.55rem;
-  margin-top: 0.8rem;
-}
-.attach-btn {
-  padding: 0.6rem 0.5rem;
-  font-size: 0.86rem;
-  color: var(--ink-dim);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
-}
-.attach-btn:active {
-  transform: scale(0.97);
-  border-color: var(--line-strong);
-}
-.attach-btn.rec {
-  color: #f0c9c1;
-  border-color: rgba(192, 86, 63, 0.5);
-  background: rgba(192, 86, 63, 0.12);
-  animation: rec-pulse 1.1s ease-in-out infinite;
-}
-@keyframes rec-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 var(--ember-glow); }
-  50% { box-shadow: 0 0 0 4px rgba(192, 86, 63, 0.05); }
+  margin-top: 0.85rem;
 }
 
-.media-chip {
+.attach-stone {
+  padding: 0.65rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+  background: var(--stone-glass);
+  border: 1px solid var(--line);
+  border-radius: var(--pebble-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.attach-stone:active {
+  transform: scale(0.97);
+  border-color: var(--line-mid);
+}
+.attach-stone.recording {
+  color: #f0c9c1;
+  border-color: rgba(192,86,63,0.4);
+  background: rgba(192,86,63,0.1);
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes rec-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--ember-glow); }
+  50% { box-shadow: 0 0 0 5px rgba(192,86,63,0.05); }
+}
+
+.media-preview-chip {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.8rem;
-  padding: 0.6rem 0.7rem;
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
+  gap: 0.8rem;
+  margin-top: 0.85rem;
+  padding: 0.65rem 0.8rem;
+  background: var(--stone-glass);
+  border: 1px solid var(--line-mid);
+  border-radius: var(--pebble-radius);
 }
-.media-thumb {
+
+.media-preview-thumb {
   width: 48px;
   height: 48px;
   object-fit: cover;
@@ -827,397 +1276,565 @@ button {
   background: #000;
   flex: 0 0 auto;
 }
-.media-audio {
+
+.media-preview-audio {
   height: 34px;
   max-width: 200px;
   flex: 1 1 auto;
 }
-.media-name {
+
+.media-preview-label {
   flex: 1 1 auto;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
-.media-remove {
+
+.media-preview-remove {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   font-size: 1.2rem;
   line-height: 1;
   color: var(--ink-dim);
   border: 1px solid var(--line);
   border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.media-remove:active {
+.media-preview-remove:active {
   color: var(--ember);
+  border-color: var(--ember-soft);
 }
 
-/* ---- inbox thread ---- */
-.center {
-  text-align: center;
-  margin-top: 2.5rem;
-}
-.media-card {
+.attach-loading {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.6rem;
-  margin-bottom: 0.4rem;
-  padding: 0.5rem 0.6rem;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid var(--line);
-  border-radius: 11px;
-}
-.media-card-glyph {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 auto;
-  font-size: 1.1rem;
-  border-radius: 9px;
-  background: rgba(192, 86, 63, 0.16);
-}
-.media-card-label {
-  display: flex;
-  flex-direction: column;
+  margin-top: 0.9rem;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.05rem;
-  color: var(--ink);
-  line-height: 1.25;
-}
-.media-hint {
-  font-family: var(--font-body);
-  font-style: normal;
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
-  color: var(--ink-faint);
-}
-.bubble.in .media-card {
-  background: rgba(0, 0, 0, 0.18);
-  border-color: rgba(192, 86, 63, 0.25);
-}
-.empty {
-  margin-top: 2.75rem;
-  text-align: center;
-  white-space: pre-line;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.2rem;
-  line-height: 1.6;
-  color: var(--ink-faint);
+  font-size: 1rem;
+  color: var(--ink-dim);
 }
 
+/* ============================================================
+   CONVERSATION THREAD — The Whispering Chamber
+   ============================================================ */
 .thread {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.85rem;
   margin-top: 0.5rem;
 }
-.bubble {
+
+.whisper-bubble {
   max-width: 85%;
-  padding: 0.85rem 1.05rem;
-  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
   font-size: 1rem;
-  line-height: 1.5;
-  animation: reveal 0.5s ease both;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  line-height: 1.55;
+  animation: bubble-rise 0.5s var(--ease-stone) both;
+  position: relative;
 }
-.bubble-text {
+
+@keyframes bubble-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.whisper-text {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
   font-family: var(--font-body);
 }
-.bubble-meta {
+
+.whisper-meta {
   display: block;
   margin-top: 0.4rem;
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
+  font-size: 0.64rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-ghost);
 }
-.bubble.out {
+
+/* Outgoing — your words leaving */
+.whisper-out {
   align-self: flex-end;
-  background: linear-gradient(180deg, rgba(20,20,25,0.7) 0%, rgba(10,10,15,0.9) 100%);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-bottom-right-radius: 2px;
+  background:
+    linear-gradient(180deg, rgba(20,20,28,0.7) 0%, rgba(10,10,16,0.9) 100%);
+  border: 1px solid var(--line);
+  border-bottom-right-radius: 3px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.35);
   backdrop-filter: blur(4px);
 }
-.bubble.in {
+
+/* Incoming — the dark's answer */
+.whisper-in {
   align-self: flex-start;
   color: #f6e9e5;
-  background: linear-gradient(180deg, rgba(130,20,20,0.2) 0%, rgba(80,10,10,0.4) 100%);
-  border: 1px solid rgba(197, 66, 40, 0.4);
-  border-bottom-left-radius: 2px;
-  box-shadow: inset 0 0 10px rgba(197, 66, 40, 0.1), 0 4px 15px rgba(197, 66, 40, 0.2);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  background:
+    linear-gradient(180deg, rgba(130,20,20,0.18) 0%, rgba(80,10,10,0.35) 100%);
+  border: 1px solid rgba(197,66,40,0.35);
+  border-bottom-left-radius: 3px;
+  box-shadow:
+    inset 0 0 12px rgba(197,66,40,0.08),
+    0 4px 18px rgba(197,66,40,0.15);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
   backdrop-filter: blur(4px);
 }
-.bubble.in .bubble-meta {
-  color: rgba(244, 232, 228, 0.6);
+
+.whisper-in .whisper-meta {
+  color: rgba(244,232,228,0.5);
 }
 
-/* ---- inbox badge on the home door ---- */
-.door-badge {
+/* Media inside bubbles */
+.bubble-media-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.4rem;
+  padding: 0.55rem 0.65rem;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.bubble-media-glyph {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: #f6e9e5;
-  background: var(--ember);
-  border-radius: 999px;
-  box-shadow: 0 0 12px var(--ember-glow);
+  font-size: 1.05rem;
+  border-radius: 9px;
+  background: rgba(192,86,63,0.14);
 }
 
-/* ---- shared small bits ---- */
-.muted {
-  color: var(--ink-faint);
-  font-size: 0.85rem;
-}
-.tall {
-  min-height: 12rem;
-}
-
-/* ---- ritual steps ---- */
-.step-marks {
+.bubble-media-label {
   display: flex;
-  justify-content: center;
-  gap: 0.9rem;
-  margin-bottom: 1.5rem;
-}
-.step-mark {
-  display: grid;
-  place-items: center;
-  min-width: 2.1rem;
-  height: 2.1rem;
-  padding: 0 0.4rem;
+  flex-direction: column;
   font-family: var(--font-display);
+  font-style: italic;
   font-size: 1rem;
-  color: var(--ink-faint);
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  transition: all 0.3s ease;
-}
-.step-mark.past {
-  color: var(--ink-dim);
-  border-color: var(--line-strong);
-}
-.step-mark.on {
-  color: #f6e9e5;
-  border-color: var(--ember-soft);
-  box-shadow: 0 0 14px var(--ember-glow);
-}
-
-/* ---- countdown ---- */
-.count-result {
-  margin-top: 2rem;
-  text-align: center;
-}
-.count-label {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.6rem;
   color: var(--ink);
-  margin: 0;
-}
-.count-date {
-  color: var(--ink-faint);
-  font-size: 0.9rem;
-  margin: 0.3rem 0 1.4rem;
-}
-.count-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.7rem;
-  margin-bottom: 1.25rem;
-}
-.count-unit {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 1rem 0.4rem;
-  background: linear-gradient(180deg, rgba(20,20,25,0.7) 0%, rgba(10,10,15,0.9) 100%);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 4px;
-  box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.6);
-}
-.count-num {
-  font-family: var(--font-display);
-  font-size: 2.3rem;
-  font-weight: 700;
-  color: var(--ember);
-  line-height: 1;
-  text-shadow: 0 0 18px var(--ember-glow), 0 2px 4px rgba(0,0,0,0.8);
-}
-.count-unit-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
+  line-height: 1.25;
 }
 
-/* ---- alias ---- */
-.name-given {
-  display: inline-block;
-  margin-top: 0.5rem;
+.bubble-media-hint {
+  font-family: var(--font-body);
   font-style: normal;
-  font-size: 1.5rem;
-  color: var(--ember);
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-ghost);
 }
 
-/* ---- archive ---- */
-.stat-list {
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(180deg, rgba(20,20,25,0.7) 0%, rgba(10,10,15,0.9) 100%);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 4px;
-  box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.6);
-  overflow: hidden;
-}
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.1rem;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-}
-.stat:last-child {
-  border-bottom: none;
-}
-.stat-glyph {
-  font-size: 1.05rem;
-}
-.stat-label {
-  flex: 1 1 auto;
-  font-size: 0.86rem;
-  color: var(--ink-dim);
-}
-.stat-value {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  color: var(--ink);
-  text-align: right;
+.whisper-in .bubble-media-card {
+  background: rgba(0,0,0,0.15);
+  border-color: rgba(192,86,63,0.2);
 }
 
-.vow-card {
-  margin-top: 1.25rem;
-  padding: 1.25rem 1.1rem;
-  background: radial-gradient(120% 100% at 50% 0%, rgba(192, 86, 63, 0.08), transparent 70%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.archive-foot {
-  margin-top: 2rem;
+/* Empty state */
+.castle-empty {
+  margin-top: 3rem;
   text-align: center;
+  white-space: pre-line;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.05rem;
-  line-height: 1.6;
+  font-size: 1.15rem;
+  line-height: 1.65;
   color: var(--ink-faint);
 }
 
 /* ============================================================
-   keeper console (admin) — chat list + reply composer
+   RITUAL PROGRESS — Step Indicators
    ============================================================ */
-.chat-list {
+.ritual-marks {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.ritual-mark {
+  display: grid;
+  place-items: center;
+  min-width: 2.2rem;
+  height: 2.2rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-ghost);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  transition: all 0.4s var(--ease-stone);
+}
+
+.ritual-mark.past {
+  color: var(--ink-dim);
+  border-color: var(--line-mid);
+}
+
+.ritual-mark.active {
+  color: #f6e9e5;
+  border-color: var(--ember-soft);
+  box-shadow: 0 0 16px var(--ember-glow);
+  animation: mark-pulse 2s ease-in-out infinite;
+}
+
+@keyframes mark-pulse {
+  0%, 100% { box-shadow: 0 0 16px var(--ember-glow); }
+  50% { box-shadow: 0 0 24px var(--ember-glow), 0 0 40px rgba(197,66,40,0.15); }
+}
+
+/* ============================================================
+   COUNTDOWN — The Hourglass Chamber
+   ============================================================ */
+.countdown-result {
+  margin-top: 2.25rem;
+  text-align: center;
+}
+
+.countdown-label {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.5rem;
+  color: var(--ink);
+  margin: 0;
+}
+
+.countdown-date {
+  color: var(--ink-faint);
+  font-size: 0.88rem;
+  margin: 0.35rem 0 1.5rem;
+}
+
+.countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.countdown-unit {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  margin-top: 0.5rem;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.1rem 0.5rem;
+  background:
+    linear-gradient(180deg, rgba(20,20,28,0.7) 0%, rgba(10,10,16,0.9) 100%);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--shadow-carved), 0 8px 24px rgba(0,0,0,0.5);
 }
-.chat-row {
+
+.countdown-number {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--ember);
+  line-height: 1;
+  text-shadow: 0 0 20px var(--ember-glow), 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.countdown-unit-label {
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* ============================================================
+   ARCHIVE — The Reliquary
+   ============================================================ */
+.reliquary {
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(180deg, rgba(20,20,28,0.7) 0%, rgba(10,10,16,0.9) 100%);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--shadow-carved), 0 8px 24px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+
+.reliquary-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.8rem 0.9rem;
-  text-align: left;
+  gap: 0.8rem;
+  padding: 1.05rem 1.15rem;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+.reliquary-item:last-child {
+  border-bottom: none;
+}
+
+.reliquary-glyph {
+  font-size: 1rem;
+}
+
+.reliquary-label {
+  flex: 1 1 auto;
+  font-size: 0.84rem;
+  color: var(--ink-dim);
+}
+
+.reliquary-value {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink);
+  text-align: right;
+}
+
+.vow-inscription {
+  margin-top: 1.5rem;
+  padding: 1.3rem 1.15rem;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(192,86,63,0.07) 0%, transparent 70%);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+  border-radius: var(--stone-radius);
+}
+
+.archive-footnote {
+  margin-top: 2rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--ink-faint);
+}
+
+/* ============================================================
+   KEEPER'S CONSOLE — The Watchtower
+   ============================================================ */
+.watchtower-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.watchtower-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  text-align: left;
   cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: var(--stone-radius);
+  background:
+    linear-gradient(180deg, var(--stone-glass) 0%, rgba(14,14,20,0.8) 100%);
+  transition: all 0.3s ease;
 }
-.chat-row:active {
-  border-color: var(--line-strong);
-  background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+.watchtower-row:active {
+  border-color: var(--line-mid);
+  background:
+    linear-gradient(180deg, rgba(14,14,20,0.8) 0%, var(--stone-glass) 100%);
 }
-.chat-row.is-new {
+.watchtower-row.unanswered {
   border-color: var(--ember-soft);
-  box-shadow: 0 0 14px var(--ember-glow);
+  box-shadow: 0 0 16px var(--ember-glow);
 }
-.chat-row-main {
+
+.watchtower-row-main {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
   flex: 1 1 auto;
 }
-.chat-row-name {
+
+.watchtower-row-name {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--ink);
 }
-.chat-row-dot {
+
+.watchtower-dot {
   width: 8px;
   height: 8px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--ember);
-  box-shadow: 0 0 8px var(--ember-glow);
+  box-shadow: 0 0 10px var(--ember-glow);
 }
-.chat-row-preview {
+
+.watchtower-row-preview {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--ink-faint);
 }
-.chat-row-time {
+
+.watchtower-row-time {
   flex: 0 0 auto;
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-ghost);
 }
-.composer {
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
+
+.composer-area {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
   border-top: 1px solid var(--line);
 }
 
 /* ============================================================
-   misc
+   LOADING STATES — Ritual Animations
    ============================================================ */
-.devnote {
+.castle-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.loading-sigil {
+  font-size: 2.5rem;
+  animation: sigil-summon 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px var(--ember-glow));
+}
+
+@keyframes sigil-summon {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.9) rotate(-5deg);
+    filter: drop-shadow(0 0 10px var(--ember-glow)) blur(1px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05) rotate(0deg);
+    filter: drop-shadow(0 0 30px var(--ember-glow)) blur(0);
+  }
+}
+
+.loading-whisper {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--ink-dim);
+}
+
+/* ============================================================
+   BOOT — The Castle Awakens
+   ============================================================ */
+.castle-boot {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.boot-title {
+  font-family: var(--font-inscription);
+  font-weight: 700;
+  font-size: 2rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 0 30px var(--ember-glow), 0 4px 20px rgba(0,0,0,0.8);
+  animation: boot-title-glow 3s ease-in-out infinite;
+}
+
+@keyframes boot-title-glow {
+  0%, 100% { text-shadow: 0 0 30px var(--ember-glow), 0 4px 20px rgba(0,0,0,0.8); }
+  50% { text-shadow: 0 0 50px var(--ember-glow), 0 4px 20px rgba(0,0,0,0.8), 0 0 80px rgba(197,66,40,0.15); }
+}
+
+.boot-whisper {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--ink-dim);
+  margin: 0;
+}
+.boot-whisper.error {
+  color: #cf8275;
+  text-shadow: 0 0 12px rgba(207,130,117,0.2);
+}
+.boot-reason {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-style: normal;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+.text-center { text-align: center; }
+.text-muted { color: var(--ink-faint); font-size: 0.85rem; }
+.mt-actions { margin-top: 1.75rem; }
+.mt-revelation { margin-top: 1.75rem; }
+.mt-small { margin-top: 0.75rem; }
+.mt-medium { margin-top: 1.25rem; }
+.actions-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.75rem;
+}
+
+.alias-display {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-style: normal;
+  font-size: 1.4rem;
+  color: var(--ember);
+  text-shadow: 0 0 12px var(--ember-glow);
+}
+
+.dev-indicator {
   position: fixed;
   bottom: calc(var(--safe-bottom) + 0.5rem);
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.66rem;
-  letter-spacing: 0.1em;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-faint);
-  opacity: 0.55;
+  color: var(--ink-ghost);
+  opacity: 0.5;
   z-index: 5;
 }
 
 /* ============================================================
-   accessibility
+   ACCESSIBILITY — Reduced Motion
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1228,4 +1845,21 @@ button {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ============================================================
+   SCROLLBAR — Subtle stone groove
+   ============================================================ */
+.room::-webkit-scrollbar {
+  width: 4px;
+}
+.room::-webkit-scrollbar-track {
+  background: transparent;
+}
+.room::-webkit-scrollbar-thumb {
+  background: var(--ink-ghost);
+  border-radius: 2px;
+}
+.room::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-faint);
 }

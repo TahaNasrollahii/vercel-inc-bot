@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 
 import Button from '../components/Button.jsx'
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call, track } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 import { notify } from '../lib/telegram.js'
 
 const SAVED =
-  'the vow is sealed.\n\nit sleeps in the dark, cold and deep.\nwhen the days run out, the corridor returns —\nto wake the promise you were meant to keep.'
+  'the vow is sealed.\n\nit sleeps in the dark, cold and deep.\nwhen the days run out, the castle returns —\nto wake the promise you were meant to keep.'
 
+// The Vow Sanctum — swear what the dark will keep
 export default function Vow({ onBack }) {
   const d = DOOR.vow
   const [state, setState] = useState('loading') // loading | view | form | saved
@@ -50,59 +51,62 @@ export default function Vow({ onBack }) {
 
   if (state === 'loading') {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <p className="whisper center">the dark recalls…</p>
-      </Screen>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <div className="castle-loading">
+          <span className="loading-sigil">🩸</span>
+          <p className="loading-whisper">the dark recalls...</p>
+        </div>
+      </Room>
     )
   }
 
   if (state === 'saved') {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <blockquote className="revelation reveal">{SAVED}</blockquote>
-      </Screen>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <blockquote className="revelation revelation-animate">{SAVED}</blockquote>
+      </Room>
     )
   }
 
   if (state === 'view') {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
         <p className="revelation-label">a vow already burns</p>
-        <blockquote className="revelation reveal">{vow.text}</blockquote>
-        <p className="prompt" style={{ marginTop: '1.25rem', fontSize: '1rem' }}>
+        <blockquote className="revelation revelation-animate">{vow.text}</blockquote>
+        <p className="whisper text-center" style={{ marginTop: '1.25rem', fontSize: '1rem' }}>
           ⏳ {vow.days_left} {vow.days_left === 1 ? 'day' : 'days'} remain before the dark returns for it.
         </p>
-        <div className="actions">
+        <div className="actions-row">
           <Button variant="ghost" onClick={() => setState('form')}>
             swear anew
           </Button>
         </div>
-      </Screen>
+      </Room>
     )
   }
 
   // form
   return (
-    <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-      <p className="prompt">
+    <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+      <p className="whisper text-center" style={{ marginBottom: '1.5rem' }}>
         make a vow to yourself —
         <br />
         something you swear to do, or to become.
       </p>
       <textarea
-        className="field area"
+        className="stone-input stone-textarea"
         value={text}
         maxLength={2000}
         rows={4}
-        placeholder="i swear that…"
+        placeholder="i swear that..."
         onChange={(e) => setText(e.target.value)}
       />
-      <label className="field-hint" htmlFor="vow-days">
+      <label className="stone-hint" htmlFor="vow-days">
         how many days until the dark reminds you? (1–365)
       </label>
       <input
         id="vow-days"
-        className="field"
+        className="stone-input"
         type="number"
         inputMode="numeric"
         min={1}
@@ -111,11 +115,11 @@ export default function Vow({ onBack }) {
         placeholder="e.g. 30"
         onChange={(e) => setDays(e.target.value)}
       />
-      <div className="actions">
+      <div className="actions-row">
         <Button onClick={save} loading={loading} disabled={!text.trim() || !validDays}>
           seal the vow
         </Button>
       </div>
-    </Screen>
+    </Room>
   )
 }

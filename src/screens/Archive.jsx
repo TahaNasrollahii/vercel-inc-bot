@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 
-import Screen from '../components/Screen.jsx'
+import Room from '../components/Screen.jsx'
 import { call } from '../lib/api.js'
 import { DOOR } from '../lib/doors.js'
 
+// The Reliquary — what the dark remembers of you
 export default function Archive({ onBack }) {
   const d = DOOR.archive
   const [state, setState] = useState('loading')
@@ -20,71 +21,76 @@ export default function Archive({ onBack }) {
 
   if (state === 'loading') {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <p className="whisper center">the dark remembers…</p>
-      </Screen>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <div className="castle-loading">
+          <span className="loading-sigil">📖</span>
+          <p className="loading-whisper">the dark remembers...</p>
+        </div>
+      </Room>
     )
   }
 
   if (state === 'error') {
     return (
-      <Screen glyph={d.glyph} title={d.title} onBack={onBack}>
-        <p className="whisper center error">the archive would not open.</p>
-      </Screen>
+      <Room glyph={d.glyph} title={d.title} onBack={onBack}>
+        <p className="whisper text-center" style={{ color: '#cf8275' }}>
+          the archive would not open.
+        </p>
+      </Room>
     )
   }
 
   const { alias, stats, vow } = data
 
   return (
-    <Screen glyph={d.glyph} title={d.title} subtitle="what the dark remembers of you" onBack={onBack}>
-      <div className="stat-list">
-        <Stat glyph="🪦" label="known as" value={alias || 'no one'} fa={!!alias} />
-        <Stat glyph="📩" label="words carried" value={stats.messages} />
-        <Stat glyph="🕯️" label="rituals completed" value={stats.rituals} />
-        <Stat glyph="📜" label="letters left unsent" value={stats.letters} />
-        <Stat
+    <Room glyph={d.glyph} title={d.title} subtitle="what the dark remembers of you" onBack={onBack}>
+      <div className="reliquary">
+        <Relic glyph="🪦" label="known as" value={alias || 'no one'} fa={!!alias} />
+        <Relic glyph="📩" label="words carried" value={stats.messages} />
+        <Relic glyph="🕯️" label="rituals completed" value={stats.rituals} />
+        <Relic glyph="📜" label="letters left unsent" value={stats.letters} />
+        <Relic
           glyph="🚪"
           label="first crossed the threshold"
           value={stats.first_seen || 'lost to the dark'}
         />
       </div>
 
-      <div className="vow-card">
+      <div className="vow-inscription">
         {vow ? (
           <>
             <p className="revelation-label" style={{ margin: '0 0 0.75rem' }}>
               🩸 a vow burns
             </p>
-            <blockquote className="revelation" style={{ margin: 0, fontSize: '1.25rem' }}>
+            <blockquote className="revelation" style={{ margin: 0, fontSize: '1.2rem' }}>
               {vow.text}
             </blockquote>
-            <p className="muted center" style={{ marginTop: '0.75rem' }}>
+            <p className="text-muted text-center" style={{ marginTop: '0.75rem' }}>
               ⏳ {vow.days_left} {vow.days_left === 1 ? 'day' : 'days'} until the dark returns for it
             </p>
           </>
         ) : (
-          <p className="muted center" style={{ margin: 0 }}>
+          <p className="text-muted text-center" style={{ margin: 0 }}>
             🩸 no vow burns in the dark
           </p>
         )}
       </div>
 
-      <p className="archive-foot">
+      <p className="archive-footnote">
         nothing here has a name.
         <br />
         only what you chose to leave behind.
       </p>
-    </Screen>
+    </Room>
   )
 }
 
-function Stat({ glyph, label, value, fa }) {
+function Relic({ glyph, label, value, fa }) {
   return (
-    <div className="stat">
-      <span className="stat-glyph">{glyph}</span>
-      <span className="stat-label">{label}</span>
-      <span className={`stat-value${fa ? ' fa' : ''}`} dir="auto">
+    <div className="reliquary-item">
+      <span className="reliquary-glyph">{glyph}</span>
+      <span className="reliquary-label">{label}</span>
+      <span className={`reliquary-value${fa ? ' fa' : ''}`} dir="auto">
         {value}
       </span>
     </div>
