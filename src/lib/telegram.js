@@ -6,7 +6,10 @@
 
 const tg = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined
 
-export const isDev = !tg || !tg.initData
+export function isDev() {
+  const t = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined
+  return !t || !t.initData
+}
 
 export function initTelegram() {
   if (!tg) return

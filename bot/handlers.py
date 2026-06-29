@@ -297,7 +297,6 @@ REPLY_LABELS = {
     "🪦 your alias": "alias",
     "📖 your archive": "myarchive",
     "👁️ the guide": "help",
-    "🚪 Enter the Corridor": "enter_corridor",
 }
 
 
@@ -308,18 +307,6 @@ def corridor_keyboard() -> ReplyKeyboardMarkup:
 
     rows.append([KeyboardButton(text="✒️ whisper to Taha")])
     rows.append([KeyboardButton(text="🐦‍⬛ Raven AI")])
-
-    if WEBAPP_URL:
-        rows.append([
-            KeyboardButton(
-                text="🚪 Enter the Corridor",
-                web_app=WebAppInfo(url=WEBAPP_URL),
-            )
-        ])
-    else:
-        rows.append([
-            KeyboardButton(text="🚪 Enter the Corridor")
-        ])
 
     rows += [
         [KeyboardButton(text="🌑 a dark quote"), KeyboardButton(text="🔮 a fortune")],
@@ -615,7 +602,7 @@ async def start(message: Message, state: FSMContext, bot: Bot, store: Store):
 # ================== HELP ==================
 @router.message(Command("help"))
 async def help_command(message: Message):
-    await message.answer(HELP_TEXT, reply_markup=main_keyboard())
+    await message.answer(HELP_TEXT, reply_markup=corridor_keyboard())
 
 
 # ================== WHISPER ==================
@@ -1653,11 +1640,6 @@ async def reply_keyboard_dispatch(
         return await my_archive(message, store)
     elif command == "help":
         return await help_command(message)
-    elif command == "enter_corridor":
-        if WEBAPP_URL:
-            return await message.answer("Use the button on the reply keyboard to open the visual corridor.")
-        else:
-            return await message.answer("the visual corridor is closed. the keeper must set a WEBAPP_URL. 🗝️")
 
     await message.answer("·", reply_markup=corridor_keyboard())
 

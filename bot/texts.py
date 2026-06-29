@@ -206,8 +206,7 @@ REPLY_ACTIVITY = {
     "⏳ a countdown": '⏳ tapped "a countdown"',
     "🪦 your alias": '🪦 tapped "your alias"',
     "📖 your archive": '📖 tapped "your archive"',
-    "👁️ the guide": '👁️ tapped "the guide"',
-    "🚪 Enter the Corridor": '🚪 tapped "Enter the Corridor"',
+    "👁️ the guide": '📖 read the guide',
 }
 
 # Each button (callback_data) and what tapping it means.
@@ -245,7 +244,6 @@ HELP_TEXT = (
     "✒️ /start — enter the dark\n\n"
     "💬 /whisper — open the corridor and write\n\n"
     "🐦‍⬛ /raven — speak to a solitary consciousness\n\n"
-    "🚪 Enter the Corridor — open the visual corridor\n\n"
     "🩸 /confess — send a confession\n"
     "    marked differently. heavier.\n\n"
     "🌑 /dark — receive a dark quote\n\n"

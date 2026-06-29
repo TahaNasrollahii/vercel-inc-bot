@@ -13,7 +13,7 @@ export function track(label) {
 }
 
 export async function call(action, payload = {}) {
-  if (isDev) {
+  if (isDev()) {
     await new Promise((r) => setTimeout(r, 250)) // fake a little latency
     return devMock(action, payload)
   }

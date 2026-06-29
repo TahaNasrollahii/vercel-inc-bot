@@ -141,7 +141,14 @@ export default function App() {
           {currentRoom}
         </div>
       </div>
-      {isDev && <p className="dev-indicator">dev preview — outside telegram</p>}
+      {isDev() && (
+        <div className="dev-indicator" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <p>dev preview — outside telegram</p>
+          <p style={{ fontSize: '10px', opacity: 0.7, wordBreak: 'break-all' }}>
+            URL: {window.location.href}
+          </p>
+        </div>
+      )}
     </main>
   )
 }
