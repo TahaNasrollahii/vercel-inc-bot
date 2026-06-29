@@ -68,7 +68,18 @@ export default function Thread({ messages, perspective = 'soul', theirLabel }) {
                 </span>
               </div>
             )}
-            {caption && <p className="whisper-text">{caption}</p>}
+            {caption && (
+              <p
+                className="whisper-text"
+                dir={
+                  !mine && theirLabel === 'raven' && /[\u0600-\u06FF]/.test(caption)
+                    ? 'rtl'
+                    : undefined
+                }
+              >
+                {caption}
+              </p>
+            )}
             <span className="whisper-meta">
               {mine ? 'you' : theirs} · {formatTime(m.ts)}
             </span>

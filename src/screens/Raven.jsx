@@ -33,7 +33,7 @@ export default function Raven({ onBack }) {
     if (!text.trim() || loading) return
     const input = text.trim()
     setText('')
-    
+
     // Optimistic UI
     const tempMsg = { role: 'user', content: input, timestamp: Date.now() / 1000 }
     setMessages((prev) => [...prev, tempMsg])
@@ -148,7 +148,7 @@ export default function Raven({ onBack }) {
               </Button>
               {messages.length > 0 && (
                 <Button variant="ghost" onClick={clearChat} disabled={loading}>
-                  clear
+                  clear history
                 </Button>
               )}
             </div>
