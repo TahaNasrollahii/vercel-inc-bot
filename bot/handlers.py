@@ -284,7 +284,7 @@ def main_keyboard() -> InlineKeyboardMarkup:
 # command its handler already implements.
 REPLY_LABELS = {
     "✒️ whisper to Taha": "whisper",
-    "✒️ whisper to Raven": "raven",
+    "🐦‍⬛ whisper to Raven": "raven",
     "🚪 Leave Raven": "raven_exit",
     "🌑 a dark quote": "dark",
     "🔮 a fortune": "fortune",
@@ -306,7 +306,7 @@ def corridor_keyboard() -> ReplyKeyboardMarkup:
     rows: list[list[KeyboardButton]] = []
 
     rows.append([KeyboardButton(text="✒️ whisper to Taha")])
-    rows.append([KeyboardButton(text="✒️ whisper to Raven")])
+    rows.append([KeyboardButton(text="🐦‍⬛ whisper to Raven")])
 
     if WEBAPP_URL:
         rows.append([

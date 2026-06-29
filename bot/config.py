@@ -29,7 +29,7 @@ AI_MODEL = os.getenv("AI_MODEL", "llama-3.3-70b-versatile")
 AI_API_KEY = os.getenv("AI_API_KEY", "")
 
 # Tunable AI behavior
-TEMPERATURE = float(os.getenv("TEMPERATURE", "0.7"))
+TEMPERATURE = float(os.getenv("TEMPERATURE", "0.2"))
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "1024"))
 MAX_CONTEXT_MESSAGES = int(os.getenv("MAX_CONTEXT_MESSAGES", "15"))
 
