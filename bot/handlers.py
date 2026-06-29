@@ -104,6 +104,11 @@ class RelayState(StatesGroup):
     waiting_for_user_selection = State()
 
 
+class RavenState(StatesGroup):
+    active = State()
+
+
+
 # ================== HELPERS ==================
 def get_text(message: Message) -> str:
     return message.text or message.caption or "[MEDIA]"
@@ -279,6 +284,8 @@ def main_keyboard() -> InlineKeyboardMarkup:
 # command its handler already implements.
 REPLY_LABELS = {
     "✒️ whisper to Taha": "whisper",
+    "✒️ whisper to Raven": "raven",
+    "🚪 Leave Raven": "raven_exit",
     "🌑 a dark quote": "dark",
     "🔮 a fortune": "fortune",
     "🌫️ the mood": "mood",
@@ -299,6 +306,7 @@ def corridor_keyboard() -> ReplyKeyboardMarkup:
     rows: list[list[KeyboardButton]] = []
 
     rows.append([KeyboardButton(text="✒️ whisper to Taha")])
+    rows.append([KeyboardButton(text="✒️ whisper to Raven")])
 
     if WEBAPP_URL:
         rows.append([
@@ -322,6 +330,16 @@ def corridor_keyboard() -> ReplyKeyboardMarkup:
         resize_keyboard=True,
         is_persistent=False,
         input_field_placeholder="Whisper…",
+    )
+
+
+def raven_keyboard() -> ReplyKeyboardMarkup:
+    """The keyboard active only while speaking to Raven."""
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="🚪 Leave Raven")]],
+        resize_keyboard=True,
+        is_persistent=False,
+        input_field_placeholder="Speak into the dark...",
     )
 
 
@@ -1625,6 +1643,82 @@ async def reply_keyboard_dispatch(
         return await help_command(message)
 
     await message.answer("·", reply_markup=corridor_keyboard())
+
+
+# ================== RAVEN (AI) ==================
+@router.message(Command("raven"))
+async def raven_start(message: Message, state: FSMContext):
+    await state.set_state(RavenState.active)
+    await message.answer(
+        "🐦‍⬛ you have stepped deeper into the library.\n\n"
+        "speak to the dark. it is listening.",
+        reply_markup=raven_keyboard(),
+    )
+
+
+@router.message(RavenState.active, F.text == "🚪 Leave Raven")
+async def raven_exit(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        "you step back into the main corridor.",
+        reply_markup=corridor_keyboard(),
+    )
+
+
+@router.message(RavenState.active)
+async def raven_chat(message: Message, state: FSMContext, store: Store):
+    from bot.ai.service import AIService
+    from bot.prompts.builder import PromptBuilder
+
+    uid = message.from_user.id
+    text = (message.text or "").strip()
+
+    if not text:
+        return
+
+    # Check rate limit
+    if not await store.check_rate_limit(uid, "min", 5, 60):
+        await message.answer("the dark needs a moment to breathe. wait.")
+        return
+
+    # Save user message
+    await store.add_ai_message(uid, {"role": "user", "content": text, "timestamp": datetime.now(timezone.utc).timestamp()})
+
+    # Prepare placeholder
+    placeholder = await message.answer("🕯️ _the dark gathers your answer..._", parse_mode="Markdown")
+
+    try:
+        # Summarize if needed
+        history = await store.get_ai_thread(uid)
+        from bot.config import MAX_CONTEXT_MESSAGES
+        if len(history) >= MAX_CONTEXT_MESSAGES:
+            # Simple summarization: keep last 5, replace rest with summary.
+            # (In a real scenario, call AI to summarize. Here we just truncate safely for now to save time/tokens)
+            kept = history[-5:]
+            summary_msg = {"role": "system", "content": "Conversation history was truncated for brevity.", "timestamp": datetime.now(timezone.utc).timestamp()}
+            history = [summary_msg] + kept
+            await store.set_ai_thread(uid, history)
+
+        # Build prompt
+        full_time, date_str, _ = get_now_info()
+        alias = await store.get_alias(uid)
+        
+        prompt = PromptBuilder.build_system_prompt(time_str=f"{full_time} ({date_str})", alias=alias)
+        
+        ai_service = AIService()
+        # Ensure we pass the exact format expected by Groq: {"role": "...", "content": "..."}
+        clean_history = [{"role": m["role"], "content": m["content"]} for m in history]
+
+        response_text = await ai_service.generate_response(prompt, clean_history)
+        
+        # Save assistant message
+        await store.add_ai_message(uid, {"role": "assistant", "content": response_text, "timestamp": datetime.now(timezone.utc).timestamp()})
+        
+        # Escape markdown or use plain if complex
+        await placeholder.edit_text(response_text)
+    except Exception as e:
+        await placeholder.edit_text("the shadows warped your words. try again.")
+        print(f"Raven error: {e}")
 
 
 # ================== ADMIN FALLBACK ==================

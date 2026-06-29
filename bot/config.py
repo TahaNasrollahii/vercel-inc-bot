@@ -22,3 +22,19 @@ CRON_SECRET = os.getenv("CRON_SECRET", "")
 # Used to add a "open the corridor" button to the reply keyboard. Leave blank
 # and that button is simply omitted.
 WEBAPP_URL = os.getenv("WEBAPP_URL", "")
+
+# ================== AI CONFIG ==================
+AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")
+AI_MODEL = os.getenv("AI_MODEL", "llama-3.3-70b-versatile")
+AI_API_KEY = os.getenv("AI_API_KEY", "")
+
+# Tunable AI behavior
+TEMPERATURE = float(os.getenv("TEMPERATURE", "0.7"))
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", "1024"))
+MAX_CONTEXT_MESSAGES = int(os.getenv("MAX_CONTEXT_MESSAGES", "15"))
+
+# Rate limiting and Caching
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "5"))
+RATE_LIMIT_PER_HOUR = int(os.getenv("RATE_LIMIT_PER_HOUR", "50"))
+CACHE_TTL = int(os.getenv("CACHE_TTL", "300"))
+

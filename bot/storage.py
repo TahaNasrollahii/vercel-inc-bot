@@ -280,3 +280,33 @@ class Store:
 
     async def clear_unread(self, uid: int) -> None:
         await self.r.delete(f"{PREFIX}:thread_unread:{uid}")
+
+    # ----- AI Conversation (Raven) -----
+    async def add_ai_message(self, uid: int, message: dict) -> None:
+        key = f"{PREFIX}:ai_thread:{uid}"
+        await self.r.rpush(key, json.dumps(message))
+
+    async def get_ai_thread(self, uid: int) -> list[dict]:
+        raw = await self.r.lrange(f"{PREFIX}:ai_thread:{uid}", 0, -1)
+        return [json.loads(x) for x in raw]
+
+    async def set_ai_thread(self, uid: int, messages: list[dict]) -> None:
+        key = f"{PREFIX}:ai_thread:{uid}"
+        await self.r.delete(key)
+        if messages:
+            await self.r.rpush(key, *[json.dumps(m) for m in messages])
+
+    async def clear_ai_thread(self, uid: int) -> None:
+        await self.r.delete(f"{PREFIX}:ai_thread:{uid}")
+
+    async def check_rate_limit(self, uid: int, period: str, limit: int, ttl: int) -> bool:
+        """
+        Token bucket / fixed window rate limit. 
+        Returns True if allowed, False if limit exceeded.
+        """
+        key = f"{PREFIX}:ai_rl:{uid}:{period}"
+        count = await self.r.incr(key)
+        if count == 1:
+            await self.r.expire(key, ttl)
+        return count <= limit
+

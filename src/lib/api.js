@@ -138,6 +138,12 @@ function devMock(action, payload = {}) {
       }
     case 'admin_reply':
       return { ok: true }
+    case 'ai_history':
+      return { ok: true, messages: [] }
+    case 'ai_clear':
+      return { ok: true }
+    case 'ai_chat':
+      return { ok: true, text: "a mock response from the void... the shadows stir." }
     default:
       throw new Error(`no dev mock for "${action}"`)
   }

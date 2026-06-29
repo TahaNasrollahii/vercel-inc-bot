@@ -7,7 +7,9 @@ dependencies = [
     "aiogram>=3.7,<4",
     "redis>=5.0,<6",
     "jdatetime>=5.0,<6",
+    "aiohttp>=3.9,<4",
 ]
+
 
 # The newer Vercel Python runtime needs the entrypoint declared explicitly
 # instead of auto-detecting api/*.py. `handler` is the BaseHTTPRequestHandler

@@ -1863,3 +1863,37 @@ button {
 .room::-webkit-scrollbar-thumb:hover {
   background: var(--ink-faint);
 }
+
+/* ================== RAVEN CHAT ================== */
+.raven-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.raven-thread {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.raven-typing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+  animation: pulse-slow 3s infinite alternate;
+}
+
+.raven-input-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@keyframes pulse-slow {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.9; }
+}

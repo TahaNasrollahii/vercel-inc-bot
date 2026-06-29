@@ -582,6 +582,60 @@ async def _admin_reply(user: dict, payload: dict) -> dict:
     return {}
 
 
+# ================== AI ACTIONS (RAVEN) ==================
+async def _ai_history(user: dict, payload: dict) -> dict:
+    uid = user["id"]
+    history = await _store.get_ai_thread(uid)
+    return {"messages": history}
+
+
+async def _ai_clear(user: dict, payload: dict) -> dict:
+    uid = user["id"]
+    await _store.clear_ai_thread(uid)
+    return {}
+
+
+async def _ai_chat(user: dict, payload: dict) -> dict:
+    from bot.ai.service import AIService
+    from bot.prompts.builder import PromptBuilder
+    from bot.handlers import get_now_info
+    
+    uid = user["id"]
+    text = payload.get("text", "").strip()
+    if not text:
+        raise ValueError("empty message")
+
+    if not await _store.check_rate_limit(uid, "min", 5, 60):
+        raise ValueError("the dark needs a moment to breathe. wait.")
+
+    await _store.add_ai_message(uid, {"role": "user", "content": text, "timestamp": datetime.now(timezone.utc).timestamp()})
+    
+    history = await _store.get_ai_thread(uid)
+    from bot.config import MAX_CONTEXT_MESSAGES
+    if len(history) >= MAX_CONTEXT_MESSAGES:
+        kept = history[-5:]
+        summary_msg = {"role": "system", "content": "Conversation history was truncated for brevity.", "timestamp": datetime.now(timezone.utc).timestamp()}
+        history = [summary_msg] + kept
+        await _store.set_ai_thread(uid, history)
+
+    full_time, date_str, _ = get_now_info()
+    alias = await _store.get_alias(uid)
+    prompt = PromptBuilder.build_system_prompt(time_str=f"{full_time} ({date_str})", alias=alias)
+    
+    ai_service = AIService()
+    clean_history = [{"role": m["role"], "content": m["content"]} for m in history]
+    try:
+        response_text = await ai_service.generate_response(prompt, clean_history)
+    except Exception as e:
+        print(f"RAVEN API ERROR: {e}")
+        await _store.set_ai_thread(uid, history[:-1])
+        raise ValueError("the shadows warped your words. try again.")
+
+    await _store.add_ai_message(uid, {"role": "assistant", "content": response_text, "timestamp": datetime.now(timezone.utc).timestamp()})
+    
+    return {"text": response_text}
+
+
 ACTIONS = {
     "me": _me,
     "dark": _dark,
@@ -604,6 +658,9 @@ ACTIONS = {
     "admin_threads": _admin_threads,
     "admin_thread": _admin_thread,
     "admin_reply": _admin_reply,
+    "ai_history": _ai_history,
+    "ai_clear": _ai_clear,
+    "ai_chat": _ai_chat,
 }
 
 

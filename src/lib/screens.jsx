@@ -14,9 +14,11 @@ import Mood from '../screens/Mood.jsx'
 import Ritual from '../screens/Ritual.jsx'
 import Speak from '../screens/Speak.jsx'
 import Vow from '../screens/Vow.jsx'
+import Raven from '../screens/Raven.jsx'
 
 export const SCREENS = {
   speak: Speak,
+  raven: Raven,
   inbox: Inbox,
   mood: Mood,
   mirror: Mirror,

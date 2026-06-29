@@ -8,6 +8,7 @@ export const SECTIONS = [
     label: 'the keeper',
     doors: [
       { key: 'speak', glyph: '✒️', title: 'whisper', sub: 'send words into the dark' },
+      { key: 'raven', glyph: '🐦‍⬛', title: 'whisper to raven', sub: 'speak to the dark itself' },
       { key: 'inbox', glyph: '👁️', title: 'what returned', sub: 'answers from the other side' },
     ],
   },
